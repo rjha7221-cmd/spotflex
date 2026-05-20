@@ -103,8 +103,8 @@ function OwnerLogin() {
 
         <
         p style = { styles.text } >
-        Don 't have account? <
-        /p>
+        Don 't have account? < /
+        p >
 
         <
         Link to = "/owner-register" >
@@ -112,8 +112,8 @@ function OwnerLogin() {
         button type = "button"
         style = { styles.registerButton } >
         Register <
-        /button> <
-        /Link>
+        /button> < /
+        Link >
 
         <
         /form>

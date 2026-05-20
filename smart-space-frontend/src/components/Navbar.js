@@ -1,154 +1,131 @@
 import React from "react";
 
-import {
-    Link,
-    useNavigate
-} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
-
     const navigate = useNavigate();
 
-    const user =
-        JSON.parse(
-            localStorage.getItem("user")
+    let user = null;
+
+    try {
+        const storedUser =
+            localStorage.getItem("user");
+
+        if (
+            storedUser &&
+            storedUser !== "undefined"
+        ) {
+            user =
+                JSON.parse(storedUser);
+        }
+    } catch (error) {
+        console.log(error);
+
+        localStorage.removeItem(
+            "user"
         );
+    }
 
-    const handleLogout = () => {
-
-        localStorage.removeItem("user");
-
-        localStorage.removeItem("token");
+    const logout = () => {
+        localStorage.removeItem(
+            "user"
+        );
 
         navigate("/");
     };
 
-    return (
-
+    return ( <
+        nav style = {
+            {
+                background: "#081028",
+                padding: "15px 40px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+            }
+        } >
         <
-        div style = { styles.navbar } >
-
-        <
-        h1 style = { styles.logo } >
+        h1 style = {
+            {
+                color: "#38bdf8",
+                fontSize: "40px",
+                fontWeight: "bold",
+            }
+        } >
         SpotFlex <
         /h1>
 
         <
-        div style = { styles.links } >
-
+        div style = {
+            {
+                display: "flex",
+                gap: "20px",
+                alignItems: "center",
+            }
+        } >
         <
         Link to = "/"
-        style = { styles.link } >
-        Landing <
-        /Link>
-
-        <
-        Link to = "/home"
         style = { styles.link } >
         Home <
         /Link>
 
-        <
-        Link to = "/my-bookings"
-        style = { styles.link } >
-        My Bookings <
-        /Link>
-
         {
-            user &&
-                user.role === "owner" && (
+            user && ( <
+                >
+                <
+                Link to = "/my-bookings"
+                style = { styles.link } >
+                My Bookings <
+                /Link>
 
-                    <
-                    Link to = "/owner-dashboard"
-                    style = { styles.link } >
-                    Owner Dashboard <
-                    /Link>
-
-                )
+                <
+                button onClick = { logout }
+                style = { styles.logout } >
+                Logout <
+                /button> <
+                />
+            )
         }
 
-        <
-        button onClick = { handleLogout }
-        style = { styles.button } >
-        Logout <
-        /button>
+        {
+            !user && ( <
+                >
+                <
+                Link to = "/login"
+                style = { styles.link } >
+                User Login <
+                /Link>
 
-        <
-        /div>
-
-        <
-        /div>
-
+                <
+                Link to = "/owner-login"
+                style = { styles.link } >
+                Owner Login <
+                /Link> <
+                />
+            )
+        } <
+        /div> <
+        /nav>
     );
 }
 
 const styles = {
-
-    navbar: {
-
-        background: "rgba(15,23,42,0.9)",
-
-        backdropFilter: "blur(10px)",
-
-        padding: "20px 40px",
-
-        display: "flex",
-
-        justifyContent: "space-between",
-
-        alignItems: "center",
-
-        borderBottom: "1px solid rgba(255,255,255,0.1)",
-
-        position: "sticky",
-
-        top: 0,
-
-        zIndex: 1000
-    },
-
-    logo: {
-
-        color: "#38bdf8",
-
-        fontSize: "32px",
-
-        fontWeight: "bold"
-    },
-
-    links: {
-
-        display: "flex",
-
-        alignItems: "center",
-
-        gap: "25px"
-    },
-
     link: {
-
         color: "white",
-
-        fontWeight: "bold",
-
-        transition: "0.3s"
+        textDecoration: "none",
+        fontSize: "18px",
+        fontWeight: "500",
     },
 
-    button: {
-
+    logout: {
         background: "linear-gradient(to right,#2563eb,#38bdf8)",
-
-        color: "white",
-
         border: "none",
-
-        padding: "10px 20px",
-
-        borderRadius: "10px",
-
-        fontWeight: "bold"
-    }
-
+        color: "white",
+        padding: "10px 18px",
+        borderRadius: "8px",
+        cursor: "pointer",
+        fontWeight: "bold",
+    },
 };
 
 export default Navbar;

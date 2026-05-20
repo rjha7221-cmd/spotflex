@@ -12,8 +12,8 @@ function SearchBar() {
         <
         button style = { styles.button } >
         Search <
-        /button> <
-        /div>
+        /button> < /
+        div >
     );
 }
 

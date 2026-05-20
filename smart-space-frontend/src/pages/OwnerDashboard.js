@@ -190,8 +190,7 @@ function OwnerDashboard() {
                 <
                 img src = {
                     space.image ?
-                    space.image :
-                        "https://via.placeholder.com/300"
+                    space.image : "https://via.placeholder.com/300"
                 }
                 alt = "space"
                 style = { styles.image }

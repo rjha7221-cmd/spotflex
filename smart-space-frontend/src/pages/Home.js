@@ -31,9 +31,9 @@ function Home() {
 
             if (!user) return alert("Please login first");
             if (!date || !startTime || !endTime) return alert("Fill all details");
-
+            console.log(user._id);
             await axios.post("http://localhost:5000/api/bookings/create", {
-                userId: user.id,
+                userId: user._id,
                 userName: user.name,
                 spaceId: selectedSpace._id,
                 spaceTitle: selectedSpace.title,
@@ -56,8 +56,8 @@ function Home() {
     return ( <
         div style = { styles.container } >
         <
-        h1 > Flexible Short - Term Space Booking Platform < /h1> <
-        p > Rent spaces anytime, anywhere. < /p>
+        h1 style = { styles.heading } > Explore Spaces < /h1> <
+        p style = { styles.subHeading } > Book your perfect workspace instantly < /p>
 
         <
         div style = { styles.grid } > {
@@ -65,15 +65,16 @@ function Home() {
                 div key = { space._id }
                 style = { styles.card } >
                 <
-                img src = { space.image || "https://via.placeholder.com/300" }
-                alt = "space"
+                img src = { space.image }
                 style = { styles.image }
                 />
 
                 <
-                h2 style = { styles.title } > { space.title || "Space" } < /h2> <
-                p style = { styles.text } > 📍{ space.location || "Location" } < /p> <
-                h3 style = { styles.price } > ₹{ space.price || 0 } < /h3>
+                div style = { styles.cardBody } >
+                <
+                h2 style = { styles.title } > { space.title } < /h2> <
+                p style = { styles.text } > 📍{ space.location } < /p> <
+                h3 style = { styles.price } > ₹{ space.price } < /h3>
 
                 <
                 button style = { styles.button }
@@ -82,7 +83,8 @@ function Home() {
                 } >
                 Book Now <
                 /button> < /
-                div >
+                div > <
+                /div>
             ))
         } <
         /div>
@@ -93,9 +95,9 @@ function Home() {
                 <
                 div style = { styles.modal } >
                 <
-                h2 style = { styles.modalTitle } > { selectedSpace.title } < /h2> <
-                p style = { styles.modalText } > 📍{ selectedSpace.location } < /p> <
-                h3 style = { styles.modalPrice } > ₹{ selectedSpace.price } < /h3>
+                h2 style = {
+                    { color: "white" }
+                } > { selectedSpace.title } < /h2>
 
                 <
                 input type = "date"
@@ -104,14 +106,18 @@ function Home() {
                     (e) => setDate(e.target.value)
                 }
                 style = { styles.input }
-                /> <
+                />
+
+                <
                 input type = "time"
                 value = { startTime }
                 onChange = {
                     (e) => setStartTime(e.target.value)
                 }
                 style = { styles.input }
-                /> <
+                />
+
+                <
                 input type = "time"
                 value = { endTime }
                 onChange = {
@@ -121,13 +127,13 @@ function Home() {
                 />
 
                 <
-                button style = { styles.payBtn }
+                button style = { styles.bookBtn }
                 onClick = { handleBooking } >
-                Proceed To Payment <
+                Confirm Booking <
                 /button>
 
                 <
-                button style = { styles.closeBtn }
+                button style = { styles.cancelBtn }
                 onClick = { closeBooking } >
                 Cancel <
                 /button> < /
@@ -142,50 +148,67 @@ function Home() {
 const styles = {
     container: {
         padding: "30px",
-        fontFamily: "Arial",
-        background: "#f3f4f6",
-        minHeight: "100vh"
+        minHeight: "100vh",
+        background: "#0f172a",
+        color: "white",
+        fontFamily: "Arial"
+    },
+
+    heading: {
+        fontSize: "36px",
+        fontWeight: "bold"
+    },
+
+    subHeading: {
+        color: "#94a3b8",
+        marginBottom: "20px"
     },
 
     grid: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
-        gap: "20px",
-        marginTop: "30px",
+        gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
+        gap: "20px"
     },
 
     card: {
-        background: "#fff",
+        background: "rgba(255,255,255,0.08)",
         borderRadius: "16px",
         overflow: "hidden",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-        transition: "all 0.3s ease",
-        textAlign: "left",
-        cursor: "pointer",
-    },
-    cardHover: {
-        transform: "scale(1.03)",
+        backdropFilter: "blur(10px)"
     },
 
     image: {
         width: "100%",
-        height: "200px",
-        objectFit: "cover",
-        borderRadius: "10px",
+        height: "180px",
+        objectFit: "cover"
     },
 
-    title: { color: "#111" },
-    text: { color: "#555" },
-    price: { color: "#111" },
+    cardBody: {
+        padding: "15px"
+    },
+
+    title: {
+        color: "white",
+        fontSize: "18px"
+    },
+
+    text: {
+        color: "#cbd5e1"
+    },
+
+    price: {
+        color: "#38bdf8"
+    },
 
     button: {
+        width: "100%",
+        padding: "10px",
         background: "#2563eb",
         color: "white",
         border: "none",
-        padding: "10px 20px",
-        borderRadius: "5px",
-        cursor: "pointer",
+        borderRadius: "8px",
         marginTop: "10px",
+        cursor: "pointer"
     },
 
     overlay: {
@@ -194,54 +217,43 @@ const styles = {
         left: 0,
         width: "100%",
         height: "100%",
-        background: "rgba(0,0,0,0.6)",
+        background: "rgba(0,0,0,0.7)",
         display: "flex",
         justifyContent: "center",
-        alignItems: "center",
-        animation: "fadeIn 0.3s ease",
+        alignItems: "center"
     },
 
     modal: {
-        background: "white",
-        padding: "25px",
-        borderRadius: "16px",
-        width: "380px",
+        background: "#111827",
+        padding: "20px",
+        borderRadius: "12px",
         display: "flex",
         flexDirection: "column",
-        gap: "12px",
-        animation: "slideUp 0.3s ease",
+        gap: "10px",
+        width: "300px"
     },
-
-    modalTitle: { color: "#111" },
-    modalText: { color: "#555" },
-    modalPrice: { color: "#111" },
 
     input: {
         padding: "10px",
-        borderRadius: "5px",
-        border: "1px solid #ccc",
-        background: "white",
-        color: "black",
-        fontSize: "16px",
+        borderRadius: "6px",
+        border: "none"
     },
 
-    payBtn: {
+    bookBtn: {
         background: "green",
         color: "white",
         border: "none",
-        padding: "12px",
-        borderRadius: "5px",
-        cursor: "pointer",
+        padding: "10px",
+        borderRadius: "6px"
     },
 
-    closeBtn: {
+    cancelBtn: {
         background: "red",
         color: "white",
         border: "none",
-        padding: "12px",
-        borderRadius: "5px",
-        cursor: "pointer",
-    },
+        padding: "10px",
+        borderRadius: "6px"
+    }
 };
 
 export default Home;

@@ -1,56 +1,20 @@
 const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema({
+    userId: String,
+    userName: String,
 
-    userId: {
-        type: String,
-        required: true
-    },
+    spaceId: String,
+    spaceTitle: String,
+    location: String,
+    price: String,
 
-    userName: {
-        type: String,
-        required: true
-    },
-
-    spaceId: {
-        type: String,
-        required: true
-    },
-
-    spaceTitle: {
-        type: String,
-        required: true
-    },
-
-    location: {
-        type: String
-    },
-
-    price: {
-        type: Number
-    },
-
-    date: {
-        type: String
-    },
-
-    startTime: {
-        type: String
-    },
-
-    endTime: {
-        type: String
-    },
-
-    bookingDate: {
-        type: Date,
-        default: Date.now
-    }
-
+    date: String,
+    startTime: String,
+    endTime: String,
 });
 
-module.exports =
-    mongoose.model(
-        "Booking",
-        bookingSchema
-    );
+module.exports = mongoose.model(
+    "Booking",
+    bookingSchema
+);

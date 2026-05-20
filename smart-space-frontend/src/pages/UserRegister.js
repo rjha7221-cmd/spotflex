@@ -110,8 +110,8 @@ function UserRegister() {
         button type = "button"
         style = { styles.registerButton } >
         Back to Login <
-        /button> <
-        /Link>
+        /button> < /
+        Link >
 
         <
         /form>

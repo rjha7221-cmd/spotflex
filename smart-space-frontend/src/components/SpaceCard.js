@@ -21,8 +21,8 @@ function SpaceCard({ title, location, price, image }) {
         <
         button style = { styles.button } >
         Book Now <
-        /button> <
-        /div>
+        /button> < /
+        div >
     );
 }
 

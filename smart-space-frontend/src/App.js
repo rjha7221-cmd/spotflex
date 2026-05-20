@@ -1,10 +1,5 @@
 import React from "react";
-
-import {
-    BrowserRouter,
-    Routes,
-    Route
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import AddSpace from "./pages/AddSpace";
@@ -24,34 +19,28 @@ import MyBookings from "./pages/MyBookings";
 import Navbar from "./components/Navbar";
 
 function App() {
-
-    return (
-
-        <
+    return ( <
         BrowserRouter >
-
         <
         Navbar / >
 
         <
         Routes >
 
-        { /* Landing Page */ } <
+        { /* Landing */ } <
         Route path = "/"
         element = { < LandingPage / > }
         />
 
-        { /* Home Page */ } <
-        Route path = "/home"
-        element = { < Home / > }
+        { /* FIX: add /login route (IMPORTANT) */ } <
+        Route path = "/login"
+        element = { < UserLogin / > }
         />
 
         { /* User Auth */ } <
         Route path = "/user-login"
         element = { < UserLogin / > }
-        />
-
-        <
+        /> <
         Route path = "/user-register"
         element = { < UserRegister / > }
         />
@@ -59,14 +48,17 @@ function App() {
         { /* Owner Auth */ } <
         Route path = "/owner-login"
         element = { < OwnerLogin / > }
-        />
-
-        <
+        /> <
         Route path = "/owner-register"
         element = { < OwnerRegister / > }
         />
 
-        { /* Owner Dashboard */ } <
+        { /* Home */ } <
+        Route path = "/home"
+        element = { < Home / > }
+        />
+
+        { /* Protected Routes */ } <
         Route path = "/owner-dashboard"
         element = { <
             ProtectedRoute >
@@ -77,7 +69,7 @@ function App() {
         }
         />
 
-        { /* Add Space */ } <
+        <
         Route path = "/add-space"
         element = { <
             ProtectedRoute >
@@ -88,7 +80,7 @@ function App() {
         }
         />
 
-        { /* My Spaces */ } <
+        <
         Route path = "/my-spaces"
         element = { <
             ProtectedRoute >
@@ -97,7 +89,9 @@ function App() {
             <
             /ProtectedRoute>
         }
-        /> <
+        />
+
+        <
         Route path = "/my-bookings"
         element = { <
             ProtectedRoute >
@@ -109,11 +103,8 @@ function App() {
         />
 
         <
-        /Routes>
-
-        <
+        /Routes> <
         /BrowserRouter>
-
     );
 }
 

@@ -2,65 +2,72 @@ const express = require("express");
 
 const router = express.Router();
 
-const Booking =
-    require("../models/Booking");
+const Booking = require("../models/Booking");
 
 
-// ================= CREATE BOOKING =================
-
+// CREATE BOOKING
 router.post("/create", async(req, res) => {
 
     try {
 
-        const booking =
-            new Booking(req.body);
+        const booking = new Booking(req.body);
 
-        await booking.save();
+        const savedBooking =
+            await booking.save();
 
-        res.status(201).json({
-
-            message: "Booking Successful 🚀"
-
-        });
+        res.status(201).json(savedBooking);
 
     } catch (error) {
 
+        console.log(error);
+
         res.status(500).json({
-
-            message: error.message
-
+            message: "Booking Failed",
         });
-
     }
-
 });
 
 
-// ================= USER BOOKINGS =================
-
-router.get("/user/:userId", async(req, res) => {
+// GET ALL BOOKINGS
+router.get("/", async(req, res) => {
 
     try {
 
         const bookings =
-            await Booking.find({
-
-                userId: req.params.userId
-
-            });
+            await Booking.find();
 
         res.json(bookings);
 
     } catch (error) {
 
+        console.log(error);
+
         res.status(500).json({
+            message: error.message,
+        });
+    }
+});
 
-            message: error.message
 
+// GET USER BOOKINGS
+router.get("/:userId", async(req, res) => {
+
+    try {
+
+        const bookings = await Booking.find({
+            userId: req.params.userId,
         });
 
-    }
+        res.json(bookings);
 
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            message: error.message,
+        });
+    }
 });
 
 module.exports = router;

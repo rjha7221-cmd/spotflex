@@ -43,16 +43,16 @@ function LandingPage() {
         <
         button style = { styles.button } >
         Login <
-        /button> <
-        /Link>
+        /button> < /
+        Link >
 
         <
         Link to = "/user-register" >
         <
         button style = { styles.registerButton } >
         Register <
-        /button> <
-        /Link>
+        /button> < /
+        Link >
 
         <
         /div>
@@ -73,16 +73,16 @@ function LandingPage() {
         <
         button style = { styles.button } >
         Login <
-        /button> <
-        /Link>
+        /button> < /
+        Link >
 
         <
         Link to = "/owner-register" >
         <
         button style = { styles.registerButton } >
         Register <
-        /button> <
-        /Link>
+        /button> < /
+        Link >
 
         <
         /div>
