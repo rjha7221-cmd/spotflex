@@ -1,131 +1,138 @@
 import React from "react";
-
 import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
 
-    let user = null;
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    navigate("/");
+  };
 
-    try {
-        const storedUser =
-            localStorage.getItem("user");
+  return (
+    <div style={styles.navbar}>
+      <Link to="/" style={styles.brandWrap}>
+        <div style={styles.logoDot}>S</div>
+        <h1 style={styles.logo}>SpotFlex</h1>
+      </Link>
 
-        if (
-            storedUser &&
-            storedUser !== "undefined"
-        ) {
-            user =
-                JSON.parse(storedUser);
-        }
-    } catch (error) {
-        console.log(error);
+      <div style={styles.links}>
+        <Link to="/" style={styles.link}>
+          Landing
+        </Link>
+        <Link to="/home" style={styles.link}>
+          Spaces
+        </Link>
+        {user && (
+          <Link to="/my-bookings" style={styles.link}>
+            My Bookings
+          </Link>
+        )}
+        {user && user.role === "owner" && (
+          <Link to="/owner-dashboard" style={styles.link}>
+            Owner Dashboard
+          </Link>
+        )}
 
-        localStorage.removeItem(
-            "user"
-        );
-    }
-
-    const logout = () => {
-        localStorage.removeItem(
-            "user"
-        );
-
-        navigate("/");
-    };
-
-    return ( <
-        nav style = {
-            {
-                background: "#081028",
-                padding: "15px 40px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-            }
-        } >
-        <
-        h1 style = {
-            {
-                color: "#38bdf8",
-                fontSize: "40px",
-                fontWeight: "bold",
-            }
-        } >
-        SpotFlex <
-        /h1>
-
-        <
-        div style = {
-            {
-                display: "flex",
-                gap: "20px",
-                alignItems: "center",
-            }
-        } >
-        <
-        Link to = "/"
-        style = { styles.link } >
-        Home <
-        /Link>
-
-        {
-            user && ( <
-                >
-                <
-                Link to = "/my-bookings"
-                style = { styles.link } >
-                My Bookings <
-                /Link>
-
-                <
-                button onClick = { logout }
-                style = { styles.logout } >
-                Logout <
-                /button> <
-                />
-            )
-        }
-
-        {
-            !user && ( <
-                >
-                <
-                Link to = "/login"
-                style = { styles.link } >
-                User Login <
-                /Link>
-
-                <
-                Link to = "/owner-login"
-                style = { styles.link } >
-                Owner Login <
-                /Link> <
-                />
-            )
-        } <
-        /div> <
-        /nav>
-    );
+        {user ? (
+          <>
+            <span style={styles.userText}>Hi, {user.name || "User"}</span>
+            <button onClick={handleLogout} style={styles.button}>
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/user-login" style={styles.secondaryBtn}>
+              User Login
+            </Link>
+            <Link to="/owner-login" style={styles.buttonLink}>
+              Owner Login
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
 const styles = {
-    link: {
-        color: "white",
-        textDecoration: "none",
-        fontSize: "18px",
-        fontWeight: "500",
-    },
-
-    logout: {
-        background: "linear-gradient(to right,#2563eb,#38bdf8)",
-        border: "none",
-        color: "white",
-        padding: "10px 18px",
-        borderRadius: "8px",
-        cursor: "pointer",
-        fontWeight: "bold",
-    },
+  navbar: {
+    background: "rgba(8, 13, 33, 0.8)",
+    backdropFilter: "blur(14px)",
+    padding: "14px 26px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottom: "1px solid rgba(148,163,184,0.2)",
+    position: "sticky",
+    top: 0,
+    zIndex: 1000,
+    flexWrap: "wrap",
+    gap: "14px",
+  },
+  brandWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  logoDot: {
+    width: "34px",
+    height: "34px",
+    borderRadius: "10px",
+    background: "linear-gradient(135deg,#38bdf8,#6366f1)",
+    color: "#fff",
+    display: "grid",
+    placeItems: "center",
+    fontWeight: 800,
+  },
+  logo: {
+    color: "#f8fafc",
+    fontSize: "24px",
+    fontWeight: 800,
+    letterSpacing: "0.5px",
+  },
+  links: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    flexWrap: "wrap",
+  },
+  link: {
+    color: "#cbd5e1",
+    fontWeight: 600,
+    fontSize: "14px",
+  },
+  userText: {
+    color: "#94a3b8",
+    fontSize: "14px",
+    marginLeft: "8px",
+  },
+  button: {
+    background: "linear-gradient(90deg,#2563eb,#38bdf8)",
+    color: "white",
+    border: "none",
+    padding: "8px 14px",
+    borderRadius: "10px",
+    fontWeight: 700,
+  },
+  buttonLink: {
+    background: "linear-gradient(90deg,#2563eb,#38bdf8)",
+    color: "white",
+    border: "none",
+    padding: "8px 14px",
+    borderRadius: "10px",
+    fontWeight: 700,
+  },
+  secondaryBtn: {
+    border: "1px solid rgba(148,163,184,0.35)",
+    color: "#e2e8f0",
+    padding: "7px 14px",
+    borderRadius: "10px",
+    fontWeight: 700,
+  },
 };
 
 export default Navbar;
