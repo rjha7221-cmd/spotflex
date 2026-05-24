@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
@@ -18,16 +18,29 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import MyBookings from "./pages/MyBookings";
 import Navbar from "./components/Navbar";
 
-function App() {
+// Theme Provider aur Context import kiya
+import { ThemeProvider, ThemeContext } from "./context/ThemeContext";
+
+// Ek chhota internal component banayenge taaki use ThemeContext ka access mil sake
+function AppContent() {
+    const { theme } = useContext(ThemeContext);
+
     return ( <
+        div style = {
+            {
+                background: theme.background,
+                minHeight: "100vh",
+                color: theme.text,
+                transition: "background 0.3s ease, color 0.3s ease"
+            }
+        } >
+        <
         BrowserRouter >
         <
         Navbar / >
 
         <
-        Routes >
-
-        { /* Landing */ } <
+        Routes > { /* Landing */ } <
         Route path = "/"
         element = { < LandingPage / > }
         />
@@ -40,7 +53,7 @@ function App() {
         { /* User Auth */ } <
         Route path = "/user-login"
         element = { < UserLogin / > }
-        /> <
+        />  <
         Route path = "/user-register"
         element = { < UserRegister / > }
         />
@@ -48,7 +61,7 @@ function App() {
         { /* Owner Auth */ } <
         Route path = "/owner-login"
         element = { < OwnerLogin / > }
-        /> <
+        />  <
         Route path = "/owner-register"
         element = { < OwnerRegister / > }
         />
@@ -100,11 +113,20 @@ function App() {
             <
             /ProtectedRoute>
         }
-        />
+        /> <
+        /Routes>  <
+        /BrowserRouter> <
+        /div>
+    );
+}
 
+function App() {
+    return ( <
+        ThemeProvider >
         <
-        /Routes> <
-        /BrowserRouter>
+        AppContent / >
+        <
+        /ThemeProvider>
     );
 }
 

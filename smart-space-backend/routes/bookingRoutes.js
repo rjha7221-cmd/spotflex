@@ -281,5 +281,14 @@ router.put("/:id/reschedule", async(req, res) => {
         });
     }
 });
+// ================= GET ALL BOOKINGS (For Owner Dashboard) =================
+router.get("/", async(req, res) => {
+    try {
+        const bookings = await Booking.find().sort({ date: -1 });
+        res.json(bookings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 module.exports = router;
