@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Space = require("../models/Space");
-
+const Booking = require("../models/Booking");
 // ==========================================
 // GET ALL SPACES
 // ==========================================
@@ -118,6 +118,72 @@ router.post("/:id/review", async(req, res) => {
         res.status(500).json({
             message: "Server Error while adding review",
             error: error.message
+        });
+    }
+});
+// ==========================================
+// AI SMART RECOMMENDATION
+// ==========================================
+
+router.get("/recommend/:userId", async(req, res) => {
+
+    try {
+
+        const userId = req.params.userId;
+
+        // user ki bookings
+        const bookings = await Booking.find({
+            userId: userId
+        });
+
+        // agar booking hi nahi hai
+        if (bookings.length === 0) {
+
+            const topSpaces =
+                await Space.find()
+                .sort({
+                    averageRating: -1
+                })
+                .limit(4);
+
+            return res.json(topSpaces);
+        }
+
+        // latest booking
+        const latestBooking =
+            bookings[bookings.length - 1];
+
+        // similar spaces
+        const recommendedSpaces =
+            await Space.find({
+
+                location: latestBooking.location,
+
+                _id: {
+                    $ne: latestBooking.spaceId
+                }
+
+            })
+            .limit(4);
+
+        // fallback
+        if (recommendedSpaces.length === 0) {
+
+            const randomSpaces =
+                await Space.find()
+                .limit(4);
+
+            return res.json(randomSpaces);
+        }
+
+        res.json(recommendedSpaces);
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            message: "Recommendation failed"
         });
     }
 });
