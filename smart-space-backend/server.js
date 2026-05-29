@@ -12,13 +12,13 @@ const authRoutes = require("./routes/authRoutes");
 const spaceRoutes = require("./routes/spaceRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const aiRoutes = require("./routes/aiRoutes");
-
+const wishlistRoutes = require("./routes/wishlistRoutes");
 const app = express();
 
 // ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json());
-
+app.use("/api/wishlist", wishlistRoutes);
 // ================= ROUTES =================
 app.use("/api/auth", authRoutes);
 app.use("/api/spaces", spaceRoutes);

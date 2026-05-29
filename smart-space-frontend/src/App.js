@@ -1,5 +1,9 @@
 import React, { useContext } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+} from "react-router-dom";
 
 import Home from "./pages/Home";
 import AddSpace from "./pages/AddSpace";
@@ -16,14 +20,18 @@ import OwnerDashboard from "./pages/OwnerDashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import MyBookings from "./pages/MyBookings";
+
 import Navbar from "./components/Navbar";
+import Wishlist from "./pages/Wishlist";
 
-// Theme Provider aur Context import kiya
-import { ThemeProvider, ThemeContext } from "./context/ThemeContext";
+import {
+    ThemeProvider,
+    ThemeContext,
+} from "./context/ThemeContext";
 
-// Ek chhota internal component banayenge taaki use ThemeContext ka access mil sake
 function AppContent() {
-    const { theme } = useContext(ThemeContext);
+    const { theme } =
+    useContext(ThemeContext);
 
     return ( <
         div style = {
@@ -31,7 +39,7 @@ function AppContent() {
                 background: theme.background,
                 minHeight: "100vh",
                 color: theme.text,
-                transition: "background 0.3s ease, color 0.3s ease"
+                transition: "background 0.3s ease, color 0.3s ease",
             }
         } >
         <
@@ -45,7 +53,7 @@ function AppContent() {
         element = { < LandingPage / > }
         />
 
-        { /* FIX: add /login route (IMPORTANT) */ } <
+        { /* Login */ } <
         Route path = "/login"
         element = { < UserLogin / > }
         />
@@ -53,7 +61,9 @@ function AppContent() {
         { /* User Auth */ } <
         Route path = "/user-login"
         element = { < UserLogin / > }
-        />  <
+        />
+
+        <
         Route path = "/user-register"
         element = { < UserRegister / > }
         />
@@ -61,7 +71,9 @@ function AppContent() {
         { /* Owner Auth */ } <
         Route path = "/owner-login"
         element = { < OwnerLogin / > }
-        />  <
+        />
+
+        <
         Route path = "/owner-register"
         element = { < OwnerRegister / > }
         />
@@ -69,6 +81,11 @@ function AppContent() {
         { /* Home */ } <
         Route path = "/home"
         element = { < Home / > }
+        />
+
+        { /* Wishlist */ } <
+        Route path = "/wishlist"
+        element = { < Wishlist / > }
         />
 
         { /* Protected Routes */ } <
@@ -114,7 +131,7 @@ function AppContent() {
             /ProtectedRoute>
         }
         /> <
-        /Routes>  <
+        /Routes> <
         /BrowserRouter> <
         /div>
     );
