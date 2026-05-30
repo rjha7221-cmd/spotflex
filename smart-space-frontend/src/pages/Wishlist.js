@@ -1,38 +1,45 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 function Wishlist() {
     const [wishlist, setWishlist] = useState([]);
+    const user = JSON.parse(localStorage.getItem("user"));
 
     useEffect(() => {
-        const savedWishlist =
-            JSON.parse(localStorage.getItem("wishlist")) || [];
-
-        setWishlist(savedWishlist);
+        fetchWishlist();
     }, []);
 
-    const removeWishlist = (id) => {
-        const updatedWishlist = wishlist.filter(
-            (item) => item._id !== id
-        );
-
-        setWishlist(updatedWishlist);
-
-        localStorage.setItem(
-            "wishlist",
-            JSON.stringify(updatedWishlist)
-        );
+    // Function ke andar user ko access karo
+    const fetchWishlist = async() => {
+        const userData = JSON.parse(localStorage.getItem("user"));
+        if (!userData) return;
+        try {
+            const res = await axios.get(`http://localhost:5000/api/wishlist/${userData.id || userData._id}`);
+            setWishlist(res.data);
+        } catch (error) {
+            console.error("Error:", error);
+        }
     };
 
-    return ( <
-        div style = { styles.container } >
-        <
-        h1 style = { styles.heading } > ❤️My Wishlist < /h1>
+    const removeWishlist = async(spaceId) => {
+        if (!user) return;
+        try {
+            await axios.delete(`http://localhost:5000/api/wishlist/${user.id || user._id}/${spaceId}`);
+            // Remove locally after deleting from DB
+            setWishlist(wishlist.filter((item) => item.spaceId !== spaceId));
+            alert("Removed from Wishlist");
+        } catch (error) {
+            console.error("Error removing item:", error);
+        }
+    };
+    console.log("Database se aaya data:", wishlist);
 
-        {
+    return ( <
+            div style = { styles.container } >
+            <
+            h1 style = { styles.heading } > ❤️My Wishlist < /h1> {
             wishlist.length === 0 ? ( <
-                p style = { styles.empty } >
-                No spaces in wishlist <
-                /p>
+                p style = { styles.empty } > No spaces in wishlist < /p>
             ) : ( <
                 div style = { styles.grid } > {
                     wishlist.map((space) => ( <
@@ -42,41 +49,19 @@ function Wishlist() {
                         img src = { space.image }
                         alt = "space"
                         style = { styles.image }
-                        />
-
-                        <
+                        /> <
                         div style = { styles.cardBody } >
                         <
-                        h2 style = { styles.title } > { space.title } <
-                        /h2>
-
-                        <
-                        p style = { styles.text } > 📍{ space.location } <
-                        /p>
-
-                        <
-                        div style = {
-                            {
-                                color: "#eab308",
-                                marginBottom: "8px",
-                            }
-                        } >
-                        ⭐{ space.averageRating || 0 } <
-                        /div>
-
-                        <
-                        h3 style = { styles.price } > ₹{ space.price } <
-                        /h3>
-
-                        <
+                        h2 style = { styles.title } > { space.title } < /h2> <
+                        p style = { styles.text } > 📍{ space.location } < /p> <
+                        h3 style = { styles.price } > ₹{ space.price } < /h3> <
                         button style = { styles.removeBtn }
                         onClick = {
-                            () =>
-                            removeWishlist(space._id)
+                            () => removeWishlist(space.spaceId)
                         } >
                         Remove <
-                        /button> <
-                        /div> <
+                        /button> < /
+                        div > <
                         /div>
                     ))
                 } <
@@ -84,9 +69,8 @@ function Wishlist() {
             )
         } <
         /div>
-    );
+);
 }
-
 const styles = {
     container: {
         minHeight: "100vh",

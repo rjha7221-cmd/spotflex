@@ -34,38 +34,47 @@ function ChatBox({ roomId, userName }) {
 
     return ( <
         div style = {
-            { display: "flex", flexDirection: "column", height: "200px", background: "#0b122e", padding: "10px", borderRadius: "8px", border: "1px solid #444" } } >
+            { display: "flex", flexDirection: "column", height: "200px", background: "#0b122e", padding: "10px", borderRadius: "8px", border: "1px solid #444" }
+        } >
         <
         div style = {
-            { flex: 1, overflowY: "auto", color: "#e2e8f0", fontSize: "12px", marginBottom: "10px" } } > {
+            { flex: 1, overflowY: "auto", color: "#e2e8f0", fontSize: "12px", marginBottom: "10px" }
+        } > {
             messages.map((m, i) => ( <
                 div key = { i }
                 style = {
-                    { marginBottom: "5px" } } >
+                    { marginBottom: "5px" }
+                } >
                 <
                 strong style = {
-                    { color: "#7dd3fc" } } > { m.userName }: < /strong> {m.text} <
-                /div>
+                    { color: "#7dd3fc" }
+                } > { m.userName }: < /strong> {m.text} < /
+                div >
             ))
         } <
         /div> <
         div style = {
-            { display: "flex", gap: "5px" } } >
+            { display: "flex", gap: "5px" }
+        } >
         <
         input value = { msg }
         onChange = {
-            (e) => setMsg(e.target.value) }
+            (e) => setMsg(e.target.value)
+        }
         onKeyPress = {
-            (e) => e.key === 'Enter' && send() }
+            (e) => e.key === 'Enter' && send()
+        }
         style = {
-            { flex: 1, padding: "8px", borderRadius: "6px", border: "1px solid #444", background: "#1e293b", color: "white" } }
+            { flex: 1, padding: "8px", borderRadius: "6px", border: "1px solid #444", background: "#1e293b", color: "white" }
+        }
         placeholder = "Type a message..." /
         >
         <
         button onClick = { send }
         style = {
-            { background: "#2563eb", color: "white", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer" } } > Send < /button> <
-        /div> <
+            { background: "#2563eb", color: "white", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer" }
+        } > Send < /button> < /
+        div > <
         /div>
     );
 }

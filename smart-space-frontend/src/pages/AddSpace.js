@@ -102,10 +102,10 @@ function AddSpace() {
         button type = "submit"
         style = { styles.button } >
         Add Space <
-        /button> <
-        /form> <
-        /div> <
-        /div>
+        /button> < /
+        form > <
+        /div> < /
+        div >
     );
 }
 

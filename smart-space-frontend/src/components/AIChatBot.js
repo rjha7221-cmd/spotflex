@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-function AIChatbot() {
+function AIChatBot() {
 
     const [open, setOpen] = useState(false);
 
@@ -69,13 +69,14 @@ function AIChatbot() {
     };
 
     return ( <
-        > { /* FLOATING BUTTON */ }
+        >
+        { /* FLOATING BUTTON */ }
 
         <
         button onClick = {
-            () => setOpen(!open) }
-        style = { styles.floatingBtn } >
-        🤖
+            () => setOpen(!open)
+        }
+        style = { styles.floatingBtn } > 🤖
         <
         /button>
 
@@ -108,9 +109,9 @@ function AIChatbot() {
 
                 <
                 button onClick = {
-                    () => setOpen(false) }
-                style = { styles.closeBtn } >
-                ✖
+                    () => setOpen(false)
+                }
+                style = { styles.closeBtn } > ✖
                 <
                 /button>
 
@@ -132,10 +133,8 @@ function AIChatbot() {
                         div key = { index }
                         style = {
                             msg.sender === "user" ?
-                            styles.userMsg :
-                                styles.aiMsg
-                        } >
-                        { msg.text } <
+                            styles.userMsg : styles.aiMsg
+                        } > { msg.text } <
                         /div>
                     ))
                 }
@@ -384,4 +383,4 @@ const styles = {
     },
 };
 
-export default AIChatbot;
+export default AIChatBot;

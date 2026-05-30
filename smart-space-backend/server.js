@@ -18,12 +18,13 @@ const app = express();
 // ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json());
-app.use("/api/wishlist", wishlistRoutes);
+
 // ================= ROUTES =================
 app.use("/api/auth", authRoutes);
 app.use("/api/spaces", spaceRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 // ================= HTTP SERVER =================
 const server = http.createServer(app);

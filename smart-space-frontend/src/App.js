@@ -19,21 +19,33 @@ import OwnerRegister from "./pages/OwnerRegister";
 import OwnerDashboard from "./pages/OwnerDashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+
 import MyBookings from "./pages/MyBookings";
 
 import Navbar from "./components/Navbar";
+
 import Wishlist from "./pages/Wishlist";
 
+import AIChatBot from "./components/AIChatBot";
+
+// THEME
 import {
     ThemeProvider,
     ThemeContext,
 } from "./context/ThemeContext";
 
+// ==============================
+// APP CONTENT
+// ==============================
+
 function AppContent() {
+
     const { theme } =
     useContext(ThemeContext);
 
-    return ( <
+    return (
+
+        <
         div style = {
             {
                 background: theme.background,
@@ -42,23 +54,30 @@ function AppContent() {
                 transition: "background 0.3s ease, color 0.3s ease",
             }
         } >
-        <
-        BrowserRouter >
-        <
-        Navbar / >
 
         <
-        Routes > { /* Landing */ } <
+        BrowserRouter >
+
+        { /* NAVBAR */ } <
+        Navbar / >
+
+        { /* GLOBAL CHATBOT */ } <
+        AIChatBot / >
+
+        { /* ROUTES */ } <
+        Routes >
+
+        { /* LANDING */ } <
         Route path = "/"
         element = { < LandingPage / > }
         />
 
-        { /* Login */ } <
+        { /* LOGIN */ } <
         Route path = "/login"
         element = { < UserLogin / > }
         />
 
-        { /* User Auth */ } <
+        { /* USER AUTH */ } <
         Route path = "/user-login"
         element = { < UserLogin / > }
         />
@@ -68,7 +87,7 @@ function AppContent() {
         element = { < UserRegister / > }
         />
 
-        { /* Owner Auth */ } <
+        { /* OWNER AUTH */ } <
         Route path = "/owner-login"
         element = { < OwnerLogin / > }
         />
@@ -78,17 +97,12 @@ function AppContent() {
         element = { < OwnerRegister / > }
         />
 
-        { /* Home */ } <
+        { /* HOME */ } <
         Route path = "/home"
         element = { < Home / > }
         />
 
-        { /* Wishlist */ } <
-        Route path = "/wishlist"
-        element = { < Wishlist / > }
-        />
-
-        { /* Protected Routes */ } <
+        { /* OWNER DASHBOARD */ } <
         Route path = "/owner-dashboard"
         element = { <
             ProtectedRoute >
@@ -99,7 +113,7 @@ function AppContent() {
         }
         />
 
-        <
+        { /* ADD SPACE */ } <
         Route path = "/add-space"
         element = { <
             ProtectedRoute >
@@ -110,7 +124,7 @@ function AppContent() {
         }
         />
 
-        <
+        { /* MY SPACES */ } <
         Route path = "/my-spaces"
         element = { <
             ProtectedRoute >
@@ -121,7 +135,7 @@ function AppContent() {
         }
         />
 
-        <
+        { /* BOOKINGS */ } <
         Route path = "/my-bookings"
         element = { <
             ProtectedRoute >
@@ -130,18 +144,38 @@ function AppContent() {
             <
             /ProtectedRoute>
         }
-        /> <
-        /Routes> <
-        /BrowserRouter> <
+        />
+
+        { /* WISHLIST */ } <
+        Route path = "/wishlist"
+        element = { < Wishlist / > }
+        />
+
+        <
+        /Routes>
+
+        <
+        /BrowserRouter>
+
+        <
         /div>
     );
 }
 
+// ==============================
+// MAIN APP
+// ==============================
+
 function App() {
-    return ( <
+
+    return (
+
+        <
         ThemeProvider >
+
         <
         AppContent / >
+
         <
         /ThemeProvider>
     );

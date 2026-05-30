@@ -1,10 +1,18 @@
-import React, { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useContext } from "react";
+
+import {
+    Link,
+    useNavigate,
+    useLocation,
+} from "react-router-dom";
+
 import { ThemeContext } from "../context/ThemeContext";
-import { ArrowLeft } from "lucide-react";
 
 function Navbar() {
+
     const navigate = useNavigate();
+
+    const location = useLocation();
 
     const { theme, toggleTheme } =
     useContext(ThemeContext);
@@ -13,28 +21,28 @@ function Navbar() {
         localStorage.getItem("user")
     );
 
-    const [showProfileMenu, setShowProfileMenu] =
-    useState(false);
-
-    const firstLetter =
-        user && user.name ?
-        user.name.charAt(0).toUpperCase() :
-        "U";
-
+    // LOGOUT
     const handleLogout = () => {
+
         localStorage.removeItem("user");
+
         localStorage.removeItem("token");
 
         navigate("/");
     };
 
-    // Dynamic Theme Styles
+    // BACK BUTTON
+    const handleBack = () => {
+        navigate(-1);
+    };
+
+    // DYNAMIC STYLES
     const navbarStyle = {
         ...styles.navbar,
 
         background: theme.isDarkMode ?
             "rgba(8, 13, 33, 0.85)" :
-            "rgba(255,255,255,0.9)",
+            "rgba(255,255,255,0.85)",
 
         borderBottom: `1px solid ${theme.border}`,
     };
@@ -46,44 +54,46 @@ function Navbar() {
 
     const linkStyle = {
         ...styles.link,
+
         color: theme.isDarkMode ?
             "#cbd5e1" :
-            "#334155",
+            "#475569",
     };
 
-    return ( <
+    const secondaryBtnStyle = {
+        ...styles.secondaryBtn,
+
+        color: theme.isDarkMode ?
+            "#e2e8f0" :
+            "#334155",
+
+        border: `1px solid ${theme.border}`,
+    };
+
+    return (
+
+        <
         div style = { navbarStyle } >
 
-        { /* LEFT SECTION */ } <
-        div style = {
-            {
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-            }
-        } >
+        { /* LEFT */ } <
+        div style = { styles.leftSection } >
 
-        { /* BACK BUTTON */ } <
-        button onClick = {
-            () => navigate(-1) }
-        style = {
-            {
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-            }
-        } >
-        <
-        ArrowLeft size = { 24 }
-        color = { theme.isDarkMode ? "white" : "black" }
-        /> <
-        /button>
+        { /* BACK BUTTON */ } {
+            location.pathname !== "/" && (
+
+                <
+                button onClick = { handleBack }
+                style = { styles.backBtn } >
+                ←
+                <
+                /button>
+            )
+        }
 
         { /* LOGO */ } <
         Link to = "/"
         style = { styles.brandWrap } >
+
         <
         div style = { styles.logoDot } >
         S <
@@ -92,11 +102,15 @@ function Navbar() {
         <
         h1 style = { logoStyle } >
         SpotFlex <
-        /h1> <
-        /Link> <
+        /h1>
+
+        <
+        /Link>
+
+        <
         /div>
 
-        { /* NAV LINKS */ } <
+        { /* RIGHT */ } <
         div style = { styles.links } >
 
         <
@@ -111,131 +125,93 @@ function Navbar() {
         Spaces <
         /Link>
 
-        { /* OWNER DASHBOARD */ } {
-            user &&
-                user.role === "owner" && ( <
-                    Link to = "/owner-dashboard"
-                    style = { linkStyle } >
-                    Owner Dashboard <
-                    /Link>
-                )
+        { /* THEME BUTTON */ } <
+        button onClick = { toggleTheme }
+        style = { styles.toggleBtn } >
+
+        {
+            theme.isDarkMode ?
+            "☀️ Light" :
+                "🌙 Dark"
         }
 
-        { /* USER LOGGED IN */ } {
-            user ? ( <
-                div style = { styles.profileWrapper } >
+        <
+        /button>
 
-                { /* PROFILE ICON */ } <
-                div style = { styles.profileIcon }
-                onClick = {
-                    () =>
-                    setShowProfileMenu(!showProfileMenu)
+        { /* USER DROPDOWN */ } {
+            user ? (
+
+                <
+                div style = { styles.profileWrapper }
+
+                onMouseEnter = {
+                    (e) => {
+                        e.currentTarget.children[1].style.display =
+                            "flex";
+                    }
+                }
+
+                onMouseLeave = {
+                    (e) => {
+                        e.currentTarget.children[1].style.display =
+                            "none";
+                    }
                 } >
-                { firstLetter } <
-                /div>
 
-                { /* DROPDOWN */ } {
-                    showProfileMenu && ( <
-                        div style = {
-                            {
-                                ...styles.dropdown,
+                <
+                button style = { styles.profileBtn } >
 
-                                    background:
-                                    theme.isDarkMode ?
-                                    "rgba(15,23,42,0.97)" :
-                                    "rgba(255,255,255,0.97)",
+                👤{ user.name }
 
-                                    border: `1px solid ${theme.border}`,
-                            }
-                        } >
+                <
+                /button>
 
-                        { /* PROFILE HEADER */ } <
-                        div style = { styles.profileTop } >
+                <
+                div style = { styles.dropdown } >
 
-                        <
-                        div style = { styles.bigAvatar } > { firstLetter } <
-                        /div>
+                <
+                Link to = "/my-bookings"
+                style = { styles.dropdownItem } >
+                📖My Bookings <
+                /Link>
 
-                        <
-                        div >
-                        <
-                        h3 style = {
-                            {
-                                color: theme.text,
-                                margin: 0,
-                                fontSize: "18px",
-                            }
-                        } >
-                        { user.name } <
-                        /h3>
+                <
+                Link to = "/wishlist"
+                style = { styles.dropdownItem } >
+                ❤️Wishlist <
+                /Link>
+
+                {
+                    user.role === "owner" && (
 
                         <
-                        p style = {
-                            {
-                                color: "#94a3b8",
-                                fontSize: "13px",
-                                marginTop: "4px",
-                            }
-                        } >
-                        SpotFlex User <
-                        /p> <
-                        /div> <
-                        /div>
-
-                        <
-                        div style = { styles.divider } > < /div>
-
-                        { /* MENU LINKS */ }
-
-                        <
-                        Link to = "/my-bookings"
-                        style = { styles.dropdownLink }
-                        onClick = {
-                            () =>
-                            setShowProfileMenu(false)
-                        } >
-                        📦My Bookings <
+                        Link to = "/owner-dashboard"
+                        style = { styles.dropdownItem } >
+                        🏢Owner Dashboard <
                         /Link>
-
-                        <
-                        Link to = "/wishlist"
-                        style = { styles.dropdownLink }
-                        onClick = {
-                            () =>
-                            setShowProfileMenu(false)
-                        } >
-                        ❤️Wishlist <
-                        /Link>
-
-                        { /* THEME BUTTON */ } <
-                        button onClick = { toggleTheme }
-                        style = { styles.dropdownButton } >
-                        {
-                            theme.isDarkMode ?
-                            "☀️ Light Mode" :
-                                "🌙 Dark Mode"
-                        } <
-                        /button>
-
-                        <
-                        div style = { styles.divider } > < /div>
-
-                        { /* LOGOUT */ } <
-                        button onClick = { handleLogout }
-                        style = { styles.logoutBtn } >
-                        🚪Logout <
-                        /button>
-
-                        <
-                        /div>
                     )
-                } <
+                }
+
+                <
+                button onClick = { handleLogout }
+                style = { styles.logoutBtn } >
+                🚪Logout <
+                /button>
+
+                <
                 /div>
-            ) : ( <
+
+                <
+                /div>
+
+            ) : (
+
+                <
                 >
+
                 <
                 Link to = "/user-login"
-                style = { styles.secondaryBtn } >
+                style = { secondaryBtnStyle } >
                 User Login <
                 /Link>
 
@@ -243,17 +219,25 @@ function Navbar() {
                 Link to = "/owner-login"
                 style = { styles.buttonLink } >
                 Owner Login <
-                /Link> <
+                /Link>
+
+                <
                 />
             )
-        } <
-        /div> <
+        }
+
+        <
+        /div>
+
+        <
         /div>
     );
 }
 
 const styles = {
+
     navbar: {
+
         backdropFilter: "blur(14px)",
 
         padding: "14px 26px",
@@ -274,10 +258,47 @@ const styles = {
 
         gap: "14px",
 
+        transition: "all 0.3s ease",
+    },
+
+    leftSection: {
+
+        display: "flex",
+
+        alignItems: "center",
+
+        gap: "15px",
+    },
+
+    backBtn: {
+
+        background: "linear-gradient(90deg,#0f172a,#1e293b)",
+
+        color: "white",
+
+        border: "1px solid #334155",
+
+        padding: "8px 14px",
+
+        borderRadius: "10px",
+
+        cursor: "pointer",
+
+        fontWeight: "bold",
+
+        fontSize: "18px",
+
+        display: "flex",
+
+        alignItems: "center",
+
+        justifyContent: "center",
+
         transition: "0.3s",
     },
 
     brandWrap: {
+
         display: "flex",
 
         alignItems: "center",
@@ -288,11 +309,12 @@ const styles = {
     },
 
     logoDot: {
-        width: "36px",
 
-        height: "36px",
+        width: "34px",
 
-        borderRadius: "12px",
+        height: "34px",
+
+        borderRadius: "10px",
 
         background: "linear-gradient(135deg,#38bdf8,#6366f1)",
 
@@ -302,18 +324,22 @@ const styles = {
 
         placeItems: "center",
 
-        fontWeight: "800",
+        fontWeight: 800,
     },
 
     logo: {
+
         fontSize: "24px",
 
-        fontWeight: "800",
+        fontWeight: 800,
+
+        letterSpacing: "0.5px",
 
         margin: 0,
     },
 
     links: {
+
         display: "flex",
 
         alignItems: "center",
@@ -324,143 +350,146 @@ const styles = {
     },
 
     link: {
+
+        fontWeight: 600,
+
+        fontSize: "14px",
+
         textDecoration: "none",
 
-        fontWeight: "600",
-
-        fontSize: "15px",
+        transition: "color 0.2s ease",
     },
 
-    profileWrapper: {
-        position: "relative",
-    },
+    toggleBtn: {
 
-    profileIcon: {
-        width: "45px",
+        background: "rgba(255,255,255,0.1)",
 
-        height: "45px",
+        border: "1px solid rgba(148,163,184,0.2)",
 
-        borderRadius: "50%",
+        color: "inherit",
 
-        background: "linear-gradient(135deg,#2563eb,#38bdf8)",
+        padding: "8px 14px",
 
-        color: "white",
+        borderRadius: "10px",
 
-        display: "flex",
-
-        justifyContent: "center",
-
-        alignItems: "center",
-
-        fontWeight: "bold",
-
-        fontSize: "18px",
+        fontWeight: 600,
 
         cursor: "pointer",
 
-        boxShadow: "0 6px 18px rgba(37,99,235,0.4)",
-    },
+        fontSize: "13px",
 
-    dropdown: {
-        position: "absolute",
-
-        top: "60px",
-
-        right: "0",
-
-        width: "270px",
-
-        borderRadius: "22px",
-
-        padding: "18px",
-
-        boxShadow: "0 15px 40px rgba(0,0,0,0.4)",
-
-        display: "flex",
-
-        flexDirection: "column",
-
-        gap: "12px",
-
-        backdropFilter: "blur(18px)",
-    },
-
-    profileTop: {
         display: "flex",
 
         alignItems: "center",
 
-        gap: "12px",
+        gap: "5px",
+
+        boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+
+        transition: "transform 0.2s ease",
     },
 
-    bigAvatar: {
-        width: "58px",
+    buttonLink: {
 
-        height: "58px",
-
-        borderRadius: "50%",
-
-        background: "linear-gradient(135deg,#2563eb,#38bdf8)",
+        background: "linear-gradient(90deg,#2563eb,#38bdf8)",
 
         color: "white",
-
-        display: "flex",
-
-        justifyContent: "center",
-
-        alignItems: "center",
-
-        fontSize: "24px",
-
-        fontWeight: "bold",
-    },
-
-    divider: {
-        height: "1px",
-
-        background: "rgba(148,163,184,0.2)",
-
-        margin: "4px 0",
-    },
-
-    dropdownLink: {
-        textDecoration: "none",
-
-        color: "#e2e8f0",
-
-        fontWeight: "600",
-
-        padding: "12px",
-
-        borderRadius: "12px",
-
-        background: "rgba(255,255,255,0.05)",
-
-        transition: "0.2s",
-    },
-
-    dropdownButton: {
-        padding: "12px",
-
-        borderRadius: "12px",
 
         border: "none",
 
-        background: "#1e293b",
+        padding: "8px 14px",
+
+        borderRadius: "10px",
+
+        fontWeight: 700,
+
+        textDecoration: "none",
+    },
+
+    secondaryBtn: {
+
+        padding: "7px 14px",
+
+        borderRadius: "10px",
+
+        fontWeight: 700,
+
+        textDecoration: "none",
+
+        transition: "all 0.3s ease",
+    },
+
+    // PROFILE DROPDOWN
+
+    profileWrapper: {
+
+        position: "relative",
+    },
+
+    profileBtn: {
+
+        background: "linear-gradient(90deg,#2563eb,#38bdf8)",
 
         color: "white",
 
-        fontWeight: "600",
+        border: "none",
+
+        padding: "10px 16px",
+
+        borderRadius: "12px",
 
         cursor: "pointer",
+
+        fontWeight: "bold",
 
         fontSize: "14px",
     },
 
-    logoutBtn: {
-        padding: "12px",
+    dropdown: {
+
+        position: "absolute",
+
+        top: "50px",
+
+        right: 0,
+
+        background: "#0f172a",
+
+        border: "1px solid #334155",
 
         borderRadius: "12px",
+
+        minWidth: "220px",
+
+        display: "none",
+
+        flexDirection: "column",
+
+        overflow: "hidden",
+
+        zIndex: 999,
+
+        boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
+    },
+
+    dropdownItem: {
+
+        padding: "14px",
+
+        color: "white",
+
+        textDecoration: "none",
+
+        borderBottom: "1px solid #1e293b",
+
+        fontSize: "14px",
+
+        transition: "0.3s",
+    },
+
+    logoutBtn: {
+
+        padding: "14px",
 
         border: "none",
 
@@ -468,39 +497,9 @@ const styles = {
 
         color: "white",
 
-        fontWeight: "bold",
-
         cursor: "pointer",
 
-        fontSize: "14px",
-    },
-
-    secondaryBtn: {
-        padding: "8px 14px",
-
-        borderRadius: "10px",
-
-        border: "1px solid rgba(148,163,184,0.3)",
-
-        textDecoration: "none",
-
-        color: "#e2e8f0",
-
-        fontWeight: "700",
-    },
-
-    buttonLink: {
-        background: "linear-gradient(90deg,#2563eb,#38bdf8)",
-
-        color: "white",
-
-        padding: "8px 14px",
-
-        borderRadius: "10px",
-
-        textDecoration: "none",
-
-        fontWeight: "700",
+        fontWeight: "bold",
     },
 };
 

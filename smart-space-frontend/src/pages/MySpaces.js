@@ -32,8 +32,8 @@ function MySpaces() {
                 />
             ))
         } <
-        /div> <
-        /div>
+        /div> < /
+        div >
     );
 }
 
