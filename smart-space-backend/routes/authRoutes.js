@@ -4,8 +4,17 @@ const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const authController = require("../controllers/authController");
 const JWT_SECRET = process.env.JWT_SECRET || "SECRET_KEY";
+// NAYA IMPORT: Controllers se OTP functions layein
+
+
+
+/* =========================
+   NEW OTP ROUTES
+========================= */
+router.post("/send-otp", authController.sendOTP);
+router.post("/verify-otp", authController.verifyOTP);
 
 /* =========================
    REGISTER
