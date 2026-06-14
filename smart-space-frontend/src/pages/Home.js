@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 import axios from "axios";
+import FakeRazorpayPayment from "../components/FakeRazorpayPayment";
+import InvoiceModal from "../components/InvoiceModal";
 
 const toMinutes = (time) => {
     if (!time || !time.includes(":")) return NaN;
@@ -30,11 +32,14 @@ function Home() {
     const [reviewRating, setReviewRating] = useState(5);
 
     const [reviewComment, setReviewComment] = useState("");
+    
     const [showPayment, setShowPayment] = useState(false);
 
     const [showInvoice, setShowInvoice] = useState(false);
 
     const [invoiceData, setInvoiceData] = useState(null);
+
+    const [bookingData, setBookingData] = useState(null);
 
     useEffect(() => {
         fetchSpaces();
@@ -69,6 +74,7 @@ function Home() {
             console.log(error);
         }
     };
+    
     const startVoiceSearch = () => {
         const SpeechRecognition =
             window.SpeechRecognition ||
@@ -183,6 +189,7 @@ function Home() {
         setShowPayment(false);
         setShowInvoice(false);
         setInvoiceData(null);
+        setBookingData(null);
     };
 
     const handleBooking = () => {
@@ -203,53 +210,36 @@ function Home() {
             return alert("End Time must be greater");
         }
 
+        // Set booking data and show payment
+        setBookingData({
+            spaceId: selectedSpace._id,
+            spaceTitle: selectedSpace.title,
+            location: selectedSpace.location,
+            price: selectedSpace.price,
+            date,
+            startTime,
+            endTime,
+            image: selectedSpace.image,
+        });
+
         setShowPayment(true);
     };
-    const handleFakePayment = async() => {
-        const user = JSON.parse(localStorage.getItem("user"));
 
-        try {
-            await axios.post("http://localhost:5000/api/bookings/create", {
-                userId: user.id || user._id,
-                userName: user.name,
+    const handlePaymentSuccess = (bookingId) => {
+        setShowPayment(false);
 
-                spaceId: selectedSpace._id,
-                spaceTitle: selectedSpace.title,
+        setInvoiceData({
+            _id: bookingId,
+            title: selectedSpace.title,
+            location: selectedSpace.location,
+            date,
+            startTime,
+            endTime,
+            price: selectedSpace.price,
+            customer: JSON.parse(localStorage.getItem("user")).name,
+        });
 
-                location: selectedSpace.location,
-                price: selectedSpace.price,
-
-                date,
-                startTime,
-                endTime,
-            });
-
-            setInvoiceData({
-                title: selectedSpace.title,
-                location: selectedSpace.location,
-                date,
-                startTime,
-                endTime,
-                price: selectedSpace.price,
-                customer: user.name,
-            });
-
-            setShowPayment(false);
-
-            setShowInvoice(true);
-        } catch (error) {
-            console.log(error);
-
-            const errorMessage =
-                error &&
-                error.response &&
-                error.response.data &&
-                error.response.data.message ?
-                error.response.data.message :
-                "Booking Failed";
-
-            alert(errorMessage);
-        }
+        setShowInvoice(true);
     };
 
     // =========================
@@ -438,10 +428,30 @@ function Home() {
         } <
         /div>
 
-        { /* MODAL */ }
+        { /* FAKE PAYMENT MODAL */ }
+        {
+            showPayment && bookingData && (
+                <FakeRazorpayPayment
+                    booking={bookingData}
+                    onPaymentSuccess={handlePaymentSuccess}
+                    onPaymentClose={() => setShowPayment(false)}
+                />
+            )
+        }
+
+        { /* INVOICE MODAL */ }
+        {
+            showInvoice && invoiceData && (
+                <InvoiceModal
+                    invoiceData={invoiceData}
+                    onClose={closeBooking}
+                />
+            )
+        }
 
         {
-            selectedSpace && ( <
+            selectedSpace && (
+                <
                 div style = { styles.overlay } >
                 <
                 div style = { styles.modal } >
