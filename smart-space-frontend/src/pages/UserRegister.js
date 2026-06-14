@@ -1,6 +1,4 @@
-import React, {
-    useState
-} from "react";
+import React, { useState } from "axios";
 
 import axios from "axios";
 
@@ -29,7 +27,7 @@ function UserRegister() {
 
         try {
 
-            await axios.post(
+            const res = await axios.post(
 
                 "http://localhost:5000/api/auth/register",
 
@@ -42,9 +40,13 @@ function UserRegister() {
 
             );
 
+            // Save user details and token to localStorage
+            localStorage.setItem("user", JSON.stringify(res.data.user));
+            localStorage.setItem("token", res.data.token || "user-token");
+
             alert("Registration Successful 🚀");
 
-            navigate("/user-login");
+            navigate("/home");
 
         } catch (error) {
 
