@@ -29,6 +29,10 @@ function UserLogin() {
 
             // Save user details to localStorage
             localStorage.setItem("user", JSON.stringify(res.data.user));
+            
+            // Save token to localStorage (for ProtectedRoute)
+            localStorage.setItem("token", res.data.token || "user-token");
+            
             alert("Login Successful 🚀");
             navigate("/home");
         } catch (err) {
