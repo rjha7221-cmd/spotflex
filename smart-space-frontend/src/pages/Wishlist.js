@@ -1,142 +1,97 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Heart, IndianRupee, MapPin, Trash2 } from "lucide-react";
+
+const fallbackImage =
+  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop";
 
 function Wishlist() {
-    const [wishlist, setWishlist] = useState([]);
-    const user = JSON.parse(localStorage.getItem("user"));
+  const [wishlist, setWishlist] = useState([]);
+  const user = JSON.parse(localStorage.getItem("user"));
 
-    useEffect(() => {
-        fetchWishlist();
-    }, []);
+  useEffect(() => {
+    fetchWishlist();
+  }, []);
 
-    // Function ke andar user ko access karo
-    const fetchWishlist = async() => {
-        const userData = JSON.parse(localStorage.getItem("user"));
-        if (!userData) return;
-        try {
-            const res = await axios.get(`http://localhost:5000/api/wishlist/${userData.id || userData._id}`);
-            setWishlist(res.data);
-        } catch (error) {
-            console.error("Error:", error);
-        }
-    };
+  const fetchWishlist = async () => {
+    const userData = JSON.parse(localStorage.getItem("user"));
 
-    const removeWishlist = async(spaceId) => {
-        if (!user) return;
-        try {
-            await axios.delete(`http://localhost:5000/api/wishlist/${user.id || user._id}/${spaceId}`);
-            // Remove locally after deleting from DB
-            setWishlist(wishlist.filter((item) => item.spaceId !== spaceId));
-            alert("Removed from Wishlist");
-        } catch (error) {
-            console.error("Error removing item:", error);
-        }
-    };
-    console.log("Database se aaya data:", wishlist);
+    if (!userData) return;
 
-    return ( <
-            div style = { styles.container } >
-            <
-            h1 style = { styles.heading } > ❤️My Wishlist < /h1> {
-            wishlist.length === 0 ? ( <
-                p style = { styles.empty } > No spaces in wishlist < /p>
-            ) : ( <
-                div style = { styles.grid } > {
-                    wishlist.map((space) => ( <
-                        div key = { space._id }
-                        style = { styles.card } >
-                        <
-                        img src = { space.image }
-                        alt = "space"
-                        style = { styles.image }
-                        /> <
-                        div style = { styles.cardBody } >
-                        <
-                        h2 style = { styles.title } > { space.title } < /h2> <
-                        p style = { styles.text } > 📍{ space.location } < /p> <
-                        h3 style = { styles.price } > ₹{ space.price } < /h3> <
-                        button style = { styles.removeBtn }
-                        onClick = {
-                            () => removeWishlist(space.spaceId)
-                        } >
-                        Remove <
-                        /button> < /
-                        div > <
-                        /div>
-                    ))
-                } <
-                /div>
-            )
-        } <
-        /div>
-);
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/wishlist/${userData.id || userData._id}`
+      );
+      setWishlist(res.data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const removeWishlist = async (spaceId) => {
+    if (!user) return;
+
+    try {
+      await axios.delete(`http://localhost:5000/api/wishlist/${user.id || user._id}/${spaceId}`);
+      setWishlist(wishlist.filter((item) => item.spaceId !== spaceId));
+      alert("Removed from wishlist");
+    } catch (error) {
+      console.error("Error removing item:", error);
+    }
+  };
+
+  return (
+    <main className="page-shell">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">
+            <Heart size={15} />
+            Saved spaces
+          </p>
+          <h1 className="page-title">My Wishlist</h1>
+          <p className="page-subtitle">
+            Keep promising spaces ready for the next booking.
+          </p>
+        </div>
+      </header>
+
+      {wishlist.length === 0 ? (
+        <div className="empty-state">
+          <h2>No spaces in wishlist</h2>
+          <p>Add spaces from discovery to compare them later.</p>
+        </div>
+      ) : (
+        <div className="space-grid">
+          {wishlist.map((space) => (
+            <article key={space._id} className="space-card">
+              <div className="space-card-image">
+                <img src={space.image || fallbackImage} alt={space.title || "Space"} />
+              </div>
+              <div className="space-card-body">
+                <h2 className="space-card-title">{space.title}</h2>
+                <p className="meta-row">
+                  <MapPin size={16} />
+                  {space.location}
+                </p>
+                <p className="price">
+                  <IndianRupee size={18} />
+                  {space.price}
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-full"
+                  onClick={() => removeWishlist(space.spaceId)}
+                >
+                  <Trash2 size={17} />
+                  Remove
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </main>
+  );
 }
-const styles = {
-    container: {
-        minHeight: "100vh",
-        background: "#020617",
-        padding: "30px",
-    },
-
-    heading: {
-        color: "white",
-        marginBottom: "30px",
-        fontSize: "40px",
-    },
-
-    empty: {
-        color: "#94a3b8",
-        fontSize: "20px",
-    },
-
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
-        gap: "20px",
-    },
-
-    card: {
-        background: "#0f172a",
-        borderRadius: "20px",
-        overflow: "hidden",
-        border: "1px solid #1e293b",
-    },
-
-    image: {
-        width: "100%",
-        height: "220px",
-        objectFit: "cover",
-    },
-
-    cardBody: {
-        padding: "18px",
-    },
-
-    title: {
-        color: "white",
-        marginBottom: "10px",
-    },
-
-    text: {
-        color: "#cbd5e1",
-        marginBottom: "10px",
-    },
-
-    price: {
-        color: "#38bdf8",
-        marginBottom: "15px",
-    },
-
-    removeBtn: {
-        width: "100%",
-        padding: "12px",
-        border: "none",
-        borderRadius: "12px",
-        background: "#ef4444",
-        color: "white",
-        fontWeight: "bold",
-        cursor: "pointer",
-    },
-};
 
 export default Wishlist;

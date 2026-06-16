@@ -1,840 +1,521 @@
 import React, { useEffect, useMemo, useState } from "react";
-
 import axios from "axios";
+import {
+  CalendarDays,
+  Clock3,
+  Heart,
+  IndianRupee,
+  MapPin,
+  Mic,
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+  Star,
+  X,
+} from "lucide-react";
+
+import FakeRazorpayPayment from "../components/FakeRazorpayPayment";
+import InvoiceModal from "../components/InvoiceModal";
+
+const fallbackImage =
+  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop";
 
 const toMinutes = (time) => {
-    if (!time || !time.includes(":")) return NaN;
+  if (!time || !time.includes(":")) return NaN;
 
-    const [hours, minutes] = time.split(":").map(Number);
-
-    return hours * 60 + minutes;
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
 };
 
 function Home() {
-    const [spaces, setSpaces] = useState([]);
+  const [spaces, setSpaces] = useState([]);
+  const [recommendedSpaces, setRecommendedSpaces] = useState([]);
+  const [selectedSpace, setSelectedSpace] = useState(null);
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [query, setQuery] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [invoiceData, setInvoiceData] = useState(null);
+  const [bookingData, setBookingData] = useState(null);
 
-    const [recommendedSpaces, setRecommendedSpaces] = useState([]);
+  useEffect(() => {
+    fetchSpaces();
+  }, []);
 
-    const [selectedSpace, setSelectedSpace] = useState(null);
+  const fetchSpaces = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/spaces");
+      const allSpaces = Array.isArray(res.data) ? res.data : [];
 
-    const [date, setDate] = useState("");
+      setSpaces(allSpaces);
 
-    const [startTime, setStartTime] = useState("");
+      const smartSorted = [...allSpaces].sort((a, b) => {
+        const ratingA = Number(a.averageRating) || 0;
+        const ratingB = Number(b.averageRating) || 0;
+        const priceA = Number(a.price) || 0;
+        const priceB = Number(b.price) || 0;
+        const scoreA = ratingA * 10 - priceA / 100;
+        const scoreB = ratingB * 10 - priceB / 100;
 
-    const [endTime, setEndTime] = useState("");
+        return scoreB - scoreA;
+      });
 
-    const [query, setQuery] = useState("");
+      setRecommendedSpaces(smartSorted.slice(0, 3));
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    const [maxPrice, setMaxPrice] = useState("");
+  const startVoiceSearch = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    const [reviewRating, setReviewRating] = useState(5);
+    if (!SpeechRecognition) {
+      alert("Voice search is not supported in this browser");
+      return;
+    }
 
-    const [reviewComment, setReviewComment] = useState("");
-    const [showPayment, setShowPayment] = useState(false);
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.start();
 
-    const [showInvoice, setShowInvoice] = useState(false);
-
-    const [invoiceData, setInvoiceData] = useState(null);
-
-    useEffect(() => {
-        fetchSpaces();
-    }, []);
-
-    const fetchSpaces = async() => {
-        try {
-            const res = await axios.get("http://localhost:5000/api/spaces");
-
-            const allSpaces = Array.isArray(res.data) ? res.data : [];
-
-            setSpaces(allSpaces);
-
-            const smartSorted = [...allSpaces].sort((a, b) => {
-                const ratingA = Number(a.averageRating) || 0;
-
-                const ratingB = Number(b.averageRating) || 0;
-
-                const priceA = Number(a.price) || 0;
-
-                const priceB = Number(b.price) || 0;
-
-                const scoreA = ratingA * 10 - priceA / 100;
-
-                const scoreB = ratingB * 10 - priceB / 100;
-
-                return scoreB - scoreA;
-            });
-
-            setRecommendedSpaces(smartSorted.slice(0, 3));
-        } catch (error) {
-            console.log(error);
-        }
-    };
-    const startVoiceSearch = () => {
-        const SpeechRecognition =
-            window.SpeechRecognition ||
-            window.webkitSpeechRecognition;
-
-        if (!SpeechRecognition) {
-            alert("Voice Search is not supported in this browser");
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-
-        recognition.lang = "en-US";
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        recognition.start();
-
-        recognition.onresult = (event) => {
-            const transcript =
-                event.results[0][0].transcript;
-
-            setQuery(transcript);
-        };
-
-        recognition.onerror = (event) => {
-            console.log(event.error);
-            alert("Voice search failed");
-        };
+    recognition.onresult = (event) => {
+      setQuery(event.results[0][0].transcript);
     };
 
-    // =========================
-
-    // WISHLIST
-
-    // =========================
-
-    const handleAddToWishlist = async(space) => {
-        const user = JSON.parse(localStorage.getItem("user"));
-
-        if (!user) {
-            return alert("Please Login First");
-        }
-
-        try {
-            const res = await axios.post("http://localhost:5000/api/wishlist/add", {
-                userId: user.id || user._id,
-
-                spaceId: space._id,
-
-                title: space.title,
-
-                location: space.location,
-
-                price: space.price,
-
-                image: space.image,
-            });
-
-            alert(res.data.message);
-        } catch (error) {
-            console.log(error);
-
-            alert("Failed to add wishlist");
-        }
+    recognition.onerror = (event) => {
+      console.log(event.error);
+      alert("Voice search failed");
     };
+  };
 
-    // =========================
+  const handleAddToWishlist = async (space) => {
+    const user = JSON.parse(localStorage.getItem("user"));
 
-    // FILTER
+    if (!user) {
+      return alert("Please login first");
+    }
 
-    // =========================
+    try {
+      const res = await axios.post("http://localhost:5000/api/wishlist/add", {
+        userId: user.id || user._id,
+        spaceId: space._id,
+        title: space.title,
+        location: space.location,
+        price: space.price,
+        image: space.image,
+      });
 
-    const filteredSpaces = useMemo(() => {
-        return spaces.filter((space) => {
-            const title = (space.title || "").toLowerCase();
+      alert(res.data.message);
+    } catch (error) {
+      console.log(error);
+      alert("Failed to add wishlist");
+    }
+  };
 
-            const location = (space.location || "").toLowerCase();
+  const filteredSpaces = useMemo(() => {
+    return spaces.filter((space) => {
+      const title = (space.title || "").toLowerCase();
+      const location = (space.location || "").toLowerCase();
+      const search = query.toLowerCase();
+      const price = Number(space.price) || 0;
+      const matchSearch = !search || title.includes(search) || location.includes(search);
+      const matchPrice = !maxPrice || price <= Number(maxPrice);
 
-            const search = query.toLowerCase();
+      return matchSearch && matchPrice;
+    });
+  }, [spaces, query, maxPrice]);
 
-            const price = Number(space.price) || 0;
+  const openBooking = (space) => {
+    setSelectedSpace(space);
+  };
 
-            const matchSearch = !search || title.includes(search) || location.includes(search);
+  const closeBooking = () => {
+    setSelectedSpace(null);
+    setDate("");
+    setStartTime("");
+    setEndTime("");
+    setReviewRating(5);
+    setReviewComment("");
+    setShowPayment(false);
+    setShowInvoice(false);
+    setInvoiceData(null);
+    setBookingData(null);
+  };
 
-            const matchPrice = !maxPrice || price <= Number(maxPrice);
+  const handleBooking = () => {
+    const user = JSON.parse(localStorage.getItem("user"));
 
-            return matchSearch && matchPrice;
-        });
-    }, [spaces, query, maxPrice]);
+    if (!user) {
+      return alert("Please login");
+    }
 
-    // =========================
+    if (!date || !startTime || !endTime) {
+      return alert("Fill all details");
+    }
 
-    // BOOKING
+    const startMinutes = toMinutes(startTime);
+    const endMinutes = toMinutes(endTime);
 
-    // =========================
+    if (endMinutes <= startMinutes) {
+      return alert("End time must be greater");
+    }
 
-    const openBooking = (space) => {
-        setSelectedSpace(space);
-    };
+    setBookingData({
+      spaceId: selectedSpace._id,
+      spaceTitle: selectedSpace.title,
+      location: selectedSpace.location,
+      price: selectedSpace.price,
+      date,
+      startTime,
+      endTime,
+      image: selectedSpace.image,
+    });
 
-    const closeBooking = () => {
-        setSelectedSpace(null);
+    setShowPayment(true);
+  };
 
-        setDate("");
-        setStartTime("");
-        setEndTime("");
+  const handlePaymentSuccess = (bookingId) => {
+    const user = JSON.parse(localStorage.getItem("user"));
 
-        setReviewRating(5);
-        setReviewComment("");
+    setShowPayment(false);
+    setInvoiceData({
+      _id: bookingId,
+      title: selectedSpace.title,
+      location: selectedSpace.location,
+      date,
+      startTime,
+      endTime,
+      price: Number(selectedSpace.price) || 0,
+      customer: user?.name || "Customer",
+    });
+    setShowInvoice(true);
+  };
 
-        setShowPayment(false);
-        setShowInvoice(false);
-        setInvoiceData(null);
-    };
+  const handleReview = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
 
-    const handleBooking = () => {
-        const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      return alert("Please login");
+    }
 
-        if (!user) {
-            return alert("Please Login");
-        }
+    try {
+      await axios.post(`http://localhost:5000/api/spaces/${selectedSpace._id}/review`, {
+        userId: user.id || user._id,
+        userName: user.name,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
 
-        if (!date || !startTime || !endTime) {
-            return alert("Fill all details");
-        }
+      alert("Review added");
+      fetchSpaces();
+      setReviewComment("");
+      setReviewRating(5);
+    } catch (error) {
+      console.log(error);
+      alert("Review failed");
+    }
+  };
 
-        const startMinutes = toMinutes(startTime);
-        const endMinutes = toMinutes(endTime);
+  const renderSpaceCard = (space, isRecommended = false) => (
+    <article key={space._id} className="space-card">
+      <div className="space-card-image">
+        <img src={space.image || fallbackImage} alt={space.title || "Space"} />
+        {isRecommended && (
+          <span className="space-card-badge">
+            <Sparkles size={15} />
+            Recommended
+          </span>
+        )}
+      </div>
 
-        if (endMinutes <= startMinutes) {
-            return alert("End Time must be greater");
-        }
+      <div className="space-card-body">
+        <h2 className="space-card-title">{space.title}</h2>
+        <p className="meta-row">
+          <MapPin size={16} />
+          {space.location}
+        </p>
+        <div className="price-line">
+          <span className="price">
+            <IndianRupee size={18} />
+            {space.price}
+          </span>
+          <span className="badge badge-warning">
+            <Star size={14} />
+            {space.averageRating || 0}
+          </span>
+        </div>
+        <div className="card-actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => openBooking(space)}
+          >
+            <CalendarDays size={17} />
+            Book
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleAddToWishlist(space)}
+          >
+            <Heart size={17} />
+            Wishlist
+          </button>
+        </div>
+      </div>
+    </article>
+  );
 
-        setShowPayment(true);
-    };
-    const handleFakePayment = async() => {
-        const user = JSON.parse(localStorage.getItem("user"));
+  return (
+    <main className="page-shell">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">
+            <Sparkles size={15} />
+            AI smart recommendations
+          </p>
+          <h1 className="page-title">Find flexible spaces</h1>
+          <p className="page-subtitle">
+            Compare nearby spaces, filter by budget, and book a slot without
+            leaving the page.
+          </p>
+        </div>
+      </header>
 
-        try {
-            await axios.post("http://localhost:5000/api/bookings/create", {
-                userId: user.id || user._id,
-                userName: user.name,
+      <section className="toolbar" aria-label="Space filters">
+        <label className="input-with-icon">
+          <Search size={18} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by title or location"
+            className="field"
+          />
+        </label>
 
-                spaceId: selectedSpace._id,
-                spaceTitle: selectedSpace.title,
+        <label className="input-with-icon">
+          <IndianRupee size={18} />
+          <input
+            type="number"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            placeholder="Max price"
+            className="field"
+          />
+        </label>
 
-                location: selectedSpace.location,
-                price: selectedSpace.price,
+        <button
+          type="button"
+          onClick={startVoiceSearch}
+          className="btn btn-secondary"
+        >
+          <Mic size={17} />
+          Voice
+        </button>
+      </section>
 
-                date,
-                startTime,
-                endTime,
-            });
+      <section className="section-block">
+        <div className="page-header compact">
+          <div>
+            <p className="eyebrow">
+              <Sparkles size={15} />
+              Recommended
+            </p>
+            <h2 className="section-title">Best matches right now</h2>
+          </div>
+        </div>
 
-            setInvoiceData({
-                title: selectedSpace.title,
-                location: selectedSpace.location,
-                date,
-                startTime,
-                endTime,
-                price: selectedSpace.price,
-                customer: user.name,
-            });
+        {recommendedSpaces.length > 0 ? (
+          <div className="space-grid">
+            {recommendedSpaces.map((space) => renderSpaceCard(space, true))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <h2>No recommendations yet</h2>
+            <p>Add spaces in the backend to populate smart recommendations.</p>
+          </div>
+        )}
+      </section>
 
-            setShowPayment(false);
+      <section className="section-block">
+        <div className="page-header compact">
+          <div>
+            <p className="eyebrow">
+              <SlidersHorizontal size={15} />
+              All spaces
+            </p>
+            <h2 className="section-title">{filteredSpaces.length} available spaces</h2>
+          </div>
+        </div>
 
-            setShowInvoice(true);
-        } catch (error) {
-            console.log(error);
+        {filteredSpaces.length > 0 ? (
+          <div className="space-grid">
+            {filteredSpaces.map((space) => renderSpaceCard(space))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <h2>No spaces found</h2>
+            <p>Try a different location or increase the price filter.</p>
+          </div>
+        )}
+      </section>
 
-            const errorMessage =
-                error &&
-                error.response &&
-                error.response.data &&
-                error.response.data.message ?
-                error.response.data.message :
-                "Booking Failed";
-
-            alert(errorMessage);
-        }
-    };
-
-    // =========================
-
-    // REVIEW
-
-    // =========================
-
-    const handleReview = async() => {
-        const user = JSON.parse(localStorage.getItem("user"));
-
-        if (!user) {
-            return alert("Please Login");
-        }
-
-        try {
-            await axios.post(
-                `http://localhost:5000/api/spaces/${selectedSpace._id}/review`, {
-                    userId: user.id || user._id,
-
-                    userName: user.name,
-
-                    rating: reviewRating,
-
-                    comment: reviewComment,
-                },
-            );
-
-            alert("Review Added ⭐");
-
-            fetchSpaces();
-
-            setReviewComment("");
-
-            setReviewRating(5);
-        } catch (error) {
-            console.log(error);
-
-            alert("Review Failed");
-        }
-    };
-
-    return ( <
-        div style = { styles.container } > { /* HEADER */ }
-
-        <
-        header style = { styles.header } >
-        <
-        h1 style = { styles.heading } > Find Perfect Spaces < /h1>
-
-        <
-        p style = { styles.tagline } > AI Smart Recommendations🤖 < /p> < /
-        header >
-
-        { /* SEARCH */ }
-
-        <
-        section style = { styles.filterBar } >
-        <
-        div style = { styles.searchWrapper } >
-        <
-        input value = { query }
-        onChange = {
-            (e) => setQuery(e.target.value)
-        }
-        placeholder = "Search Space"
-        style = { styles.searchInput }
+      {showPayment && bookingData && (
+        <FakeRazorpayPayment
+          booking={bookingData}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentClose={() => setShowPayment(false)}
         />
+      )}
 
-        <
-        button type = "button"
-        onClick = { startVoiceSearch }
-        style = { styles.micButton } > 🎤
-        <
-        /button> < /
-        div >
+      {showInvoice && invoiceData && (
+        <InvoiceModal invoiceData={invoiceData} onClose={closeBooking} />
+      )}
 
-        <
-        input type = "number"
-        value = { maxPrice }
-        onChange = {
-            (e) => setMaxPrice(e.target.value)
-        }
-        placeholder = "Max Price"
-        style = { styles.input }
-        /> < /
-        section > { /* RECOMMENDED */ }
+      {selectedSpace && !showPayment && !showInvoice && (
+        <div className="modal-backdrop">
+          <div className="modal-panel">
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">
+                  <CalendarDays size={15} />
+                  Booking
+                </p>
+                <h2 className="modal-title">{selectedSpace.title}</h2>
+              </div>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={closeBooking}
+                aria-label="Close booking modal"
+                title="Close"
+              >
+                <X size={17} />
+              </button>
+            </div>
 
-        <
-        h2 style = { styles.recommendHeading } > 🤖Recommended Spaces < /h2>
+            <div className="modal-grid">
+              <section className="form-grid">
+                <img
+                  src={selectedSpace.image || fallbackImage}
+                  alt={selectedSpace.title || "Space"}
+                  className="modal-image"
+                />
+                <p className="meta-row">
+                  <MapPin size={16} />
+                  {selectedSpace.location}
+                </p>
+                <p className="price">
+                  <IndianRupee size={18} />
+                  {selectedSpace.price}
+                </p>
 
-        <
-        div style = { styles.grid } > {
-            recommendedSpaces.map((space) => ( <
-                div key = { space._id }
-                style = { styles.card } >
-                <
-                img src = { space.image }
-                alt = "space"
-                style = { styles.image }
+                <label className="input-with-icon">
+                  <CalendarDays size={18} />
+                  <input
+                    type="date"
+                    value={date}
+                    min={new Date().toISOString().split("T")[0]}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="field"
+                  />
+                </label>
+
+                <label className="input-with-icon">
+                  <Clock3 size={18} />
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="field"
+                  />
+                </label>
+
+                <label className="input-with-icon">
+                  <Clock3 size={18} />
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="field"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  className="btn btn-primary btn-full"
+                  onClick={handleBooking}
+                >
+                  Confirm Booking
+                </button>
+              </section>
+
+              <section className="form-grid">
+                <iframe
+                  title="map"
+                  className="map-frame"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                    selectedSpace.location || ""
+                  )}&output=embed`}
                 />
 
-                <
-                div style = { styles.cardBody } >
-                <
-                h2 style = { styles.title } > { space.title } < /h2>
+                <div>
+                  <h3 className="section-title">Add review</h3>
+                  <p className="page-subtitle">
+                    Share quick feedback for this space after your experience.
+                  </p>
+                </div>
 
-                <
-                p style = { styles.text } > 📍{ space.location } < /p>
+                <select
+                  value={reviewRating}
+                  onChange={(e) => setReviewRating(Number(e.target.value))}
+                  className="select"
+                >
+                  <option value={5}>5 Star</option>
+                  <option value={4}>4 Star</option>
+                  <option value={3}>3 Star</option>
+                  <option value={2}>2 Star</option>
+                  <option value={1}>1 Star</option>
+                </select>
 
-                <
-                div style = { styles.rating } > ⭐{ space.averageRating || 0 } < /div>
-
-                <
-                h3 style = { styles.price } > ₹{ space.price } < /h3>
-
-                <
-                button style = { styles.button }
-                onClick = {
-                    () => openBooking(space)
-                } >
-                Book Recommended { " " } <
-                /button>
-
-                <
-                button style = { styles.wishlistBtn }
-                onClick = {
-                    () => handleAddToWishlist(space)
-                } > { " " }❤️
-                Add to Wishlist { " " } <
-                /button> < /
-                div > <
-                /div>
-            ))
-        } <
-        /div>
-
-        { /* ALL SPACES */ }
-
-        <
-        h2 style = { styles.recommendHeading } > 📦All Spaces < /h2>
-
-        <
-        div style = { styles.grid } > {
-            filteredSpaces.map((space) => ( <
-                div key = { space._id }
-                style = { styles.card } >
-                <
-                img src = { space.image || "https://via.placeholder.com/400x200" }
-                alt = "space"
-                style = { styles.image }
+                <textarea
+                  placeholder="Write review..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  className="textarea"
                 />
 
-                <
-                div style = { styles.cardBody } >
-                <
-                h2 style = { styles.title } > { space.title } < /h2>
-
-                <
-                p style = { styles.text } > 📍{ space.location } < /p>
-
-                <
-                div style = { styles.rating } > ⭐{ space.averageRating || 0 } < /div>
-
-                <
-                h3 style = { styles.price } > ₹{ space.price } < /h3>
-
-                <
-                button style = { styles.button }
-                onClick = {
-                    () => openBooking(space)
-                } >
-                Book Now { " " } <
-                /button>
-
-                <
-                button style = { styles.wishlistBtn }
-                onClick = {
-                    () => handleAddToWishlist(space)
-                } > { " " }❤️
-                Add to Wishlist { " " } <
-                /button> < /
-                div > <
-                /div>
-            ))
-        } <
-        /div>
-
-        { /* MODAL */ }
-
-        {
-            selectedSpace && ( <
-                div style = { styles.overlay } >
-                <
-                div style = { styles.modal } >
-                <
-                div style = { styles.modalGrid } >
-
-                { /* LEFT SIDE */ } <
-                div >
-                <
-                img src = { selectedSpace.image }
-                alt = "space"
-                style = { styles.modalImage }
-                />
-
-                <
-                h2 style = { styles.modalTitle } > { selectedSpace.title } < /h2>
-
-                <
-                p style = { styles.text } > 📍{ selectedSpace.location } < /p>
-
-                <
-                h3 style = { styles.price } > ₹{ selectedSpace.price } < /h3>
-
-                <
-                input type = "date"
-                value = { date }
-                min = { new Date().toISOString().split("T")[0] }
-                onChange = {
-                    (e) => setDate(e.target.value)
-                }
-                style = { styles.modalInput }
-                />
-
-                <
-                input type = "time"
-                value = { startTime }
-                onChange = {
-                    (e) => setStartTime(e.target.value)
-                }
-                style = { styles.modalInput }
-                />
-
-                <
-                input type = "time"
-                value = { endTime }
-                onChange = {
-                    (e) => setEndTime(e.target.value)
-                }
-                style = { styles.modalInput }
-                />
-
-                <
-                button style = { styles.button }
-                onClick = { handleBooking } >
-                Confirm Booking <
-                /button> < /
-                div >
-
-                { /* RIGHT SIDE */ } <
-                div >
-                <
-                iframe title = "map"
-                width = "100%"
-                height = "250"
-                style = {
-                    {
-                        borderRadius: "12px",
-                        border: "none",
-                        marginBottom: "15px"
-                    }
-                }
-                src = { `https://maps.google.com/maps?q=${selectedSpace.location}&output=embed` }
-                />
-
-                <
-                h2 style = { styles.reviewHeading } >
-                Add Review <
-                /h2>
-
-                <
-                select value = { reviewRating }
-                onChange = {
-                    (e) =>
-                    setReviewRating(Number(e.target.value))
-                }
-                style = { styles.modalInput } >
-                <
-                option value = { 5 } > 5 Star < /option> <
-                option value = { 4 } > 4 Star < /option> <
-                option value = { 3 } > 3 Star < /option> <
-                option value = { 2 } > 2 Star < /option> <
-                option value = { 1 } > 1 Star < /option> < /
-                select >
-
-                <
-                textarea placeholder = "Write review..."
-                value = { reviewComment }
-                onChange = {
-                    (e) =>
-                    setReviewComment(e.target.value)
-                }
-                style = { styles.textarea }
-                />
-
-                <
-                button style = { styles.button }
-                onClick = { handleReview } >
-                Submit Review <
-                /button>
-
-                <
-                button style = { styles.closeBtn }
-                onClick = { closeBooking } >
-                Close <
-                /button> < /
-                div >
-
-                <
-                /div> < /
-                div > < /
-                div >
-            )
-        } <
-        /div>
-    );
+                <div className="action-row">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleReview}
+                  >
+                    Submit Review
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={closeBooking}
+                  >
+                    Close
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
 }
-
-const styles = {
-    container: {
-        padding: "30px",
-
-        background: "#020617",
-
-        minHeight: "100vh",
-    },
-
-    header: {
-        marginBottom: "20px",
-    },
-
-    heading: {
-        color: "white",
-
-        fontSize: "48px",
-
-        marginBottom: "10px",
-    },
-
-    tagline: {
-        color: "#94a3b8",
-
-        fontSize: "18px",
-    },
-
-    filterBar: {
-        display: "grid",
-
-        gridTemplateColumns: "1fr 1fr",
-
-        gap: "15px",
-
-        marginBottom: "25px",
-    },
-
-    input: {
-        padding: "15px",
-
-        borderRadius: "12px",
-
-        border: "none",
-
-        fontSize: "16px",
-    },
-
-    recommendHeading: {
-        color: "white",
-
-        marginBottom: "20px",
-
-        marginTop: "10px",
-    },
-
-    grid: {
-        display: "grid",
-
-        gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
-
-        gap: "20px",
-
-        marginBottom: "40px",
-    },
-
-    card: {
-        background: "#0f172a",
-
-        borderRadius: "20px",
-
-        overflow: "hidden",
-
-        border: "1px solid #1e293b",
-    },
-
-    image: {
-        width: "100%",
-
-        height: "220px",
-
-        objectFit: "cover",
-    },
-
-    cardBody: {
-        padding: "18px",
-    },
-
-    title: {
-        color: "white",
-
-        marginBottom: "10px",
-    },
-
-    text: {
-        color: "#cbd5e1",
-
-        marginBottom: "10px",
-    },
-
-    rating: {
-        color: "#eab308",
-
-        marginBottom: "10px",
-    },
-
-    price: {
-        color: "#38bdf8",
-
-        marginBottom: "15px",
-    },
-
-    button: {
-        width: "100%",
-
-        padding: "12px",
-
-        border: "none",
-
-        borderRadius: "12px",
-
-        background: "linear-gradient(90deg,#2563eb,#38bdf8)",
-
-        color: "white",
-
-        fontWeight: "bold",
-
-        cursor: "pointer",
-
-        marginBottom: "10px",
-    },
-
-    wishlistBtn: {
-        width: "100%",
-
-        padding: "12px",
-
-        border: "none",
-
-        borderRadius: "12px",
-
-        background: "#475569",
-
-        color: "white",
-
-        fontWeight: "bold",
-
-        cursor: "pointer",
-    },
-
-    overlay: {
-        position: "fixed",
-
-        top: 0,
-
-        left: 0,
-
-        width: "100%",
-
-        height: "100%",
-
-        background: "rgba(0,0,0,0.8)",
-
-        display: "flex",
-
-        justifyContent: "center",
-
-        alignItems: "center",
-
-        zIndex: 999,
-    },
-
-    modal: {
-        background: "#0f172a",
-        padding: "25px",
-        borderRadius: "20px",
-        width: "1000px",
-        maxWidth: "95%",
-        maxHeight: "90vh",
-        overflowY: "auto",
-    },
-
-    modalImage: {
-        width: "100%",
-
-        height: "200px",
-
-        borderRadius: "12px",
-
-        objectFit: "cover",
-    },
-
-    modalTitle: {
-        color: "white",
-    },
-
-    modalInput: {
-        padding: "12px",
-
-        borderRadius: "10px",
-
-        border: "none",
-    },
-
-    reviewHeading: {
-        color: "white",
-
-        marginTop: "10px",
-    },
-
-    textarea: {
-        padding: "12px",
-
-        borderRadius: "10px",
-
-        border: "none",
-
-        minHeight: "100px",
-
-        resize: "none",
-    },
-
-    closeBtn: {
-        width: "100%",
-
-        padding: "12px",
-
-        border: "none",
-
-        borderRadius: "12px",
-
-        background: "#ef4444",
-
-        color: "white",
-
-        fontWeight: "bold",
-
-        cursor: "pointer",
-    },
-    searchWrapper: {
-        position: "relative",
-        width: "100%",
-    },
-
-    searchInput: {
-        width: "100%",
-        padding: "15px 55px 15px 15px",
-        borderRadius: "12px",
-        border: "none",
-        fontSize: "16px",
-    },
-
-    micButton: {
-        position: "absolute",
-        right: "12px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        border: "none",
-        background: "transparent",
-        cursor: "pointer",
-        fontSize: "22px",
-    },
-    modalGrid: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "25px",
-    },
-};
 
 export default Home;

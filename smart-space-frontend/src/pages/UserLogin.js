@@ -1,163 +1,145 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { KeyRound, Mail, ShieldCheck } from "lucide-react";
 
 function UserLogin() {
-    const navigate = useNavigate();
-    const [step, setStep] = useState(1); // 1: Login Form, 2: OTP Verification
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [otp, setOtp] = useState("");
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
 
-    // Step 1: Send OTP for Login
-    const handleSendOTP = async(e) => {
-        e.preventDefault();
-        try {
-            await axios.post("http://localhost:5000/api/auth/send-otp", { identifier: email });
-            setStep(2);
-            alert("OTP sent to your email!");
-        } catch (err) {
-            alert("Failed to send OTP. Make sure email is registered.");
-        }
-    };
+  const handleSendOTP = async (e) => {
+    e.preventDefault();
 
-    // Step 2: Verify OTP
-    const handleVerifyOTP = async(e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post("http://localhost:5000/api/auth/verify-otp", { identifier: email, otp });
+    try {
+      await axios.post("http://localhost:5000/api/auth/send-otp", {
+        identifier: email,
+      });
+      setStep(2);
+      alert("OTP sent to your email.");
+    } catch (err) {
+      alert("Failed to send OTP. Make sure email is registered.");
+    }
+  };
 
-            // Save user details to localStorage
-            localStorage.setItem("user", JSON.stringify(res.data.user));
-            alert("Login Successful 🚀");
-            navigate("/home");
-        } catch (err) {
-            alert("Invalid OTP");
-        }
-    };
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
 
-    return ( <
-        div style = { styles.container } >
-        <
-        form style = { styles.card }
-        onSubmit = { step === 1 ? handleSendOTP : handleVerifyOTP } >
-        <
-        h1 style = { styles.title } > { step === 1 ? "User Login" : "Verify OTP" } < /h1>
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/verify-otp", {
+        identifier: email,
+        otp,
+      });
 
-        {
-            step === 1 ? ( <
-                >
-                <
-                input type = "email"
-                placeholder = "Enter Email"
-                value = { email }
-                onChange = {
-                    (e) => setEmail(e.target.value) }
-                style = { styles.input }
-                required /
-                >
-                <
-                input type = "password"
-                placeholder = "Enter Password"
-                value = { password }
-                onChange = {
-                    (e) => setPassword(e.target.value) }
-                style = { styles.input }
-                /> <
-                button style = { styles.button }
-                type = "submit" > Login with OTP < /button> <
-                />
-            ) : ( <
-                >
-                <
-                input type = "text"
-                placeholder = "Enter 6-digit OTP"
-                value = { otp }
-                onChange = {
-                    (e) => setOtp(e.target.value) }
-                style = { styles.input }
-                required /
-                >
-                <
-                button style = { styles.button }
-                type = "submit" > Verify & Login < /button> <
-                />
-            )
-        }
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token || "user-token");
 
-        {
-            step === 1 && ( <
-                div style = {
-                    { textAlign: "center" } } >
-                <
-                p style = { styles.text } > Don 't have an account?</p> <
-                Link to = "/user-register" >
-                <
-                button type = "button"
-                style = { styles.registerBtn } > Register < /button> <
-                /Link> <
-                /div>
-            )
-        } <
-        /form> <
-        /div>
-    );
+      alert("Login successful.");
+      navigate("/home");
+    } catch (err) {
+      alert("Invalid OTP");
+    }
+  };
+
+  return (
+    <main className="auth-page">
+      <section className="auth-visual">
+        <div className="auth-visual-content">
+          <p className="eyebrow">
+            <ShieldCheck size={15} />
+            Flexible booking
+          </p>
+          <h1>Find the right space when plans change.</h1>
+          <p>
+            Search, compare, book, and manage short-term spaces from one clean
+            workspace.
+          </p>
+        </div>
+      </section>
+
+      <form
+        className="auth-card form-grid"
+        onSubmit={step === 1 ? handleSendOTP : handleVerifyOTP}
+      >
+        <div>
+          <p className="eyebrow">
+            <KeyRound size={15} />
+            {step === 1 ? "User login" : "Verification"}
+          </p>
+          <h1>{step === 1 ? "Welcome back" : "Enter your OTP"}</h1>
+          <p>
+            {step === 1
+              ? "Use your email to receive a one-time login code."
+              : "We sent a six-digit code to your registered email."}
+          </p>
+        </div>
+
+        {step === 1 ? (
+          <>
+            <label className="input-with-icon">
+              <Mail size={18} />
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="field"
+                required
+              />
+            </label>
+            <label className="input-with-icon">
+              <KeyRound size={18} />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="field"
+              />
+            </label>
+            <button className="btn btn-primary btn-full" type="submit">
+              Send OTP
+            </button>
+          </>
+        ) : (
+          <>
+            <label className="input-with-icon">
+              <ShieldCheck size={18} />
+              <input
+                type="text"
+                placeholder="6-digit OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="field"
+                required
+              />
+            </label>
+            <button className="btn btn-primary btn-full" type="submit">
+              Verify and Login
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-full"
+              onClick={() => setStep(1)}
+            >
+              Change Email
+            </button>
+          </>
+        )}
+
+        {step === 1 && (
+          <div className="auth-links">
+            <p>New to SpotFlex?</p>
+            <Link to="/user-register" className="btn btn-secondary btn-full">
+              Create User Account
+            </Link>
+          </div>
+        )}
+      </form>
+    </main>
+  );
 }
-
-const styles = {
-    container: {
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(to right, #0f172a, #1e3a8a)",
-    },
-    card: {
-        width: "350px",
-        padding: "40px",
-        borderRadius: "20px",
-        background: "rgba(255, 255, 255, 0.08)",
-        backdropFilter: "blur(10px)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-    },
-    title: {
-        textAlign: "center",
-        color: "white",
-    },
-    input: {
-        padding: "14px",
-        borderRadius: "10px",
-        border: "none",
-        outline: "none",
-        fontSize: "16px",
-    },
-    button: {
-        padding: "14px",
-        borderRadius: "10px",
-        border: "none",
-        background: "linear-gradient(to right, #2563eb, #38bdf8)",
-        color: "white",
-        fontWeight: "bold",
-        cursor: "pointer",
-        fontSize: "16px",
-    },
-    registerBtn: {
-        padding: "12px",
-        width: "100%",
-        borderRadius: "10px",
-        border: "1px solid white",
-        background: "transparent",
-        color: "white",
-        cursor: "pointer",
-        fontWeight: "bold",
-    },
-    text: {
-        color: "#cbd5e1",
-        fontSize: "14px",
-        marginBottom: "10px",
-    },
-};
 
 export default UserLogin;

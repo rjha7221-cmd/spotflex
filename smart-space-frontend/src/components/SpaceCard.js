@@ -1,57 +1,30 @@
 import React from "react";
+import { IndianRupee, MapPin } from "lucide-react";
 
-function SpaceCard({ title, location, price, image }) {
-    return ( <
-        div style = { styles.card } >
-        <
-        img src = { image }
-        alt = "space"
-        style = { styles.image }
-        />
+const fallbackImage =
+  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop";
 
-        <
-        h3 > { title } < /h3>
+function SpaceCard({ title, location, price, image, actions }) {
+  return (
+    <article className="space-card">
+      <div className="space-card-image">
+        <img src={image || fallbackImage} alt={title || "Space"} />
+      </div>
 
-        <
-        p > 📍{ location } < /p>
-
-        <
-        h4 > ₹{ price } < /h4>
-
-        <
-        button style = { styles.button } >
-        Book Now <
-        /button> < /
-        div >
-    );
+      <div className="space-card-body">
+        <h2 className="space-card-title">{title}</h2>
+        <p className="meta-row">
+          <MapPin size={16} />
+          {location}
+        </p>
+        <div className="price">
+          <IndianRupee size={18} />
+          {price}
+        </div>
+        {actions || <button className="btn btn-primary btn-full">Book Now</button>}
+      </div>
+    </article>
+  );
 }
-
-const styles = {
-    card: {
-        width: "300px",
-        background: "white",
-        padding: "15px",
-        borderRadius: "12px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
-    },
-
-    image: {
-        width: "100%",
-        height: "200px",
-        objectFit: "cover",
-        borderRadius: "10px"
-    },
-
-    button: {
-        marginTop: "10px",
-        width: "100%",
-        padding: "10px",
-        border: "none",
-        background: "#2563eb",
-        color: "white",
-        borderRadius: "8px",
-        cursor: "pointer"
-    }
-};
 
 export default SpaceCard;

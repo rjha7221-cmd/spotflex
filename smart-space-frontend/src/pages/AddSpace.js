@@ -1,162 +1,108 @@
 import React, { useState } from "react";
-
 import axios from "axios";
-
 import { useNavigate } from "react-router-dom";
+import { Building2, Image, IndianRupee, MapPin, Plus } from "lucide-react";
 
 function AddSpace() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [price, setPrice] = useState("");
+  const [image, setImage] = useState("");
 
-    const [title, setTitle] = useState("");
-    const [location, setLocation] = useState("");
-    const [price, setPrice] = useState("");
-    const [image, setImage] = useState("");
+  const handleAddSpace = async (e) => {
+    e.preventDefault();
 
-    const handleAddSpace = async(e) => {
-        e.preventDefault();
+    try {
+      const res = await axios.post("http://localhost:5000/api/spaces/add", {
+        title,
+        location,
+        price: Number(price),
+        image,
+      });
 
-        try {
-            const res = await axios.post(
-                "http://localhost:5000/api/spaces/add", {
-                    title,
-                    location,
-                    price: Number(price),
-                    image,
-                }
-            );
+      if (res.data.success) {
+        alert("Space added successfully.");
+        navigate("/owner-dashboard");
+      } else {
+        alert("Failed to add space");
+      }
+    } catch (error) {
+      console.log(error);
+      alert("Something went wrong");
+    }
+  };
 
-            if (res.data.success) {
-                alert("Space Added Successfully ✅");
+  return (
+    <main className="page-shell">
+      <form className="surface-card form-panel form-grid" onSubmit={handleAddSpace}>
+        <div>
+          <p className="eyebrow">
+            <Plus size={15} />
+            New listing
+          </p>
+          <h1 className="section-title">Add New Space</h1>
+          <p className="page-subtitle">
+            Publish a flexible space with a clear title, location, price, and
+            image.
+          </p>
+        </div>
 
-                navigate("/owner-dashboard");
-            } else {
-                alert("Failed To Add Space");
-            }
-        } catch (error) {
-            console.log(error);
+        <label className="input-with-icon">
+          <Building2 size={18} />
+          <input
+            type="text"
+            placeholder="Space title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="field"
+            required
+          />
+        </label>
 
-            alert("Something went wrong");
-        }
-    };
+        <label className="input-with-icon">
+          <MapPin size={18} />
+          <input
+            type="text"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="field"
+            required
+          />
+        </label>
 
-    return ( <
-        div style = { styles.container } >
-        <
-        div style = { styles.card } >
-        <
-        h1 style = { styles.heading } >
-        Add New Space <
-        /h1>
+        <label className="input-with-icon">
+          <IndianRupee size={18} />
+          <input
+            type="number"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="field"
+            required
+          />
+        </label>
 
-        <
-        form onSubmit = { handleAddSpace } >
-        <
-        input type = "text"
-        placeholder = "Space Title"
-        value = { title }
-        onChange = {
-            (e) =>
-            setTitle(e.target.value)
-        }
-        style = { styles.input }
-        required /
-        >
+        <label className="input-with-icon">
+          <Image size={18} />
+          <input
+            type="url"
+            placeholder="Image URL"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            className="field"
+            required
+          />
+        </label>
 
-        <
-        input type = "text"
-        placeholder = "Location"
-        value = { location }
-        onChange = {
-            (e) =>
-            setLocation(e.target.value)
-        }
-        style = { styles.input }
-        required /
-        >
-
-        <
-        input type = "number"
-        placeholder = "Price"
-        value = { price }
-        onChange = {
-            (e) =>
-            setPrice(e.target.value)
-        }
-        style = { styles.input }
-        required /
-        >
-
-        <
-        input type = "text"
-        placeholder = "Image URL"
-        value = { image }
-        onChange = {
-            (e) =>
-            setImage(e.target.value)
-        }
-        style = { styles.input }
-        required /
-        >
-
-        <
-        button type = "submit"
-        style = { styles.button } >
-        Add Space <
-        /button> < /
-        form > <
-        /div> < /
-        div >
-    );
+        <button type="submit" className="btn btn-primary btn-full">
+          <Plus size={17} />
+          Add Space
+        </button>
+      </form>
+    </main>
+  );
 }
-
-const styles = {
-    container: {
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#0f172a",
-        padding: "20px",
-    },
-
-    card: {
-        width: "400px",
-        background: "rgba(255,255,255,0.08)",
-        padding: "35px",
-        borderRadius: "20px",
-        backdropFilter: "blur(10px)",
-        boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
-    },
-
-    heading: {
-        color: "white",
-        textAlign: "center",
-        marginBottom: "25px",
-        fontSize: "32px",
-    },
-
-    input: {
-        width: "100%",
-        padding: "14px",
-        marginBottom: "18px",
-        borderRadius: "10px",
-        border: "none",
-        outline: "none",
-        fontSize: "16px",
-        boxSizing: "border-box",
-    },
-
-    button: {
-        width: "100%",
-        padding: "14px",
-        border: "none",
-        borderRadius: "10px",
-        background: "linear-gradient(to right,#2563eb,#38bdf8)",
-        color: "white",
-        fontSize: "17px",
-        fontWeight: "bold",
-        cursor: "pointer",
-    },
-};
 
 export default AddSpace;

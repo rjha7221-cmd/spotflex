@@ -1,386 +1,110 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { Bot, Send, Trash2, X } from "lucide-react";
+
+const initialMessage = {
+  sender: "ai",
+  text: "Hello, I am the SpotFlex AI Assistant.",
+};
 
 function AIChatBot() {
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [chat, setChat] = useState([initialMessage]);
 
-    const [open, setOpen] = useState(false);
+  const sendMessage = async () => {
+    if (!message.trim()) return;
 
-    const [message, setMessage] = useState("");
+    const userMessage = message;
+    const updatedChat = [...chat, { sender: "user", text: userMessage }];
 
-    const [chat, setChat] = useState([{
-        sender: "ai",
-        text: "Hello 👋 I am SpotFlex AI Assistant",
-    }, ]);
+    setChat(updatedChat);
+    setMessage("");
 
-    const sendMessage = async() => {
+    try {
+      const res = await axios.post("http://localhost:5000/api/ai/chat", {
+        message: userMessage,
+      });
 
-        if (!message.trim()) return;
+      setChat([...updatedChat, { sender: "ai", text: res.data.reply }]);
+    } catch (error) {
+      console.log(error);
+      setChat([...updatedChat, { sender: "ai", text: "AI server error." }]);
+    }
+  };
 
-        const updatedChat = [
-            ...chat,
-            {
-                sender: "user",
-                text: message,
-            },
-        ];
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="ai-fab"
+        aria-label="Open AI assistant"
+        title="SpotFlex AI"
+      >
+        <Bot size={25} />
+      </button>
 
-        setChat(updatedChat);
+      {open && (
+        <div className="ai-window">
+          <div className="ai-header">
+            <div className="ai-title">
+              <Bot size={19} />
+              SpotFlex AI
+            </div>
+            <div className="action-row">
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setChat([initialMessage])}
+                aria-label="Clear chat"
+                title="Clear"
+              >
+                <Trash2 size={16} />
+              </button>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setOpen(false)}
+                aria-label="Close chat"
+                title="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
 
-        const userMessage = message;
+          <div className="ai-messages">
+            {chat.map((msg, index) => (
+              <div key={`${msg.sender}-${index}`} className={`ai-bubble ${msg.sender}`}>
+                {msg.text}
+              </div>
+            ))}
+          </div>
 
-        setMessage("");
-
-        try {
-
-            const res = await axios.post(
-                "http://localhost:5000/api/ai/chat", {
-                    message: userMessage,
-                }
-            );
-
-            setChat([
-                ...updatedChat,
-                {
-                    sender: "ai",
-                    text: res.data.reply,
-                },
-            ]);
-
-        } catch (error) {
-
-            console.log(error);
-
-            setChat([
-                ...updatedChat,
-                {
-                    sender: "ai",
-                    text: "AI Server Error",
-                },
-            ]);
-        }
-    };
-
-    const clearChat = () => {
-
-        setChat([{
-            sender: "ai",
-            text: "Hello 👋 I am SpotFlex AI Assistant",
-        }, ]);
-    };
-
-    return ( <
-        >
-        { /* FLOATING BUTTON */ }
-
-        <
-        button onClick = {
-            () => setOpen(!open)
-        }
-        style = { styles.floatingBtn } > 🤖
-        <
-        /button>
-
-        { /* CHATBOX */ }
-
-        {
-            open && (
-
-                <
-                div style = { styles.chatbox } >
-
-                { /* HEADER */ }
-
-                <
-                div style = { styles.header } >
-
-                <
-                span >
-                SpotFlex AI <
-                /span>
-
-                <
-                div style = { styles.headerBtns } >
-
-                <
-                button onClick = { clearChat }
-                style = { styles.clearBtn } >
-                Clear <
-                /button>
-
-                <
-                button onClick = {
-                    () => setOpen(false)
-                }
-                style = { styles.closeBtn } > ✖
-                <
-                /button>
-
-                <
-                /div>
-
-                <
-                /div>
-
-                { /* MESSAGES */ }
-
-                <
-                div style = { styles.messages } >
-
-                {
-                    chat.map((msg, index) => (
-
-                        <
-                        div key = { index }
-                        style = {
-                            msg.sender === "user" ?
-                            styles.userMsg : styles.aiMsg
-                        } > { msg.text } <
-                        /div>
-                    ))
-                }
-
-                <
-                /div>
-
-                { /* INPUT */ }
-
-                <
-                div style = { styles.inputArea } >
-
-                <
-                input type = "text"
-                placeholder = "Ask anything..."
-                value = { message }
-                onChange = {
-                    (e) =>
-                    setMessage(e.target.value)
-                }
-                onKeyDown = {
-                    (e) => {
-                        if (e.key === "Enter") {
-                            sendMessage();
-                        }
-                    }
-                }
-                style = { styles.input }
-                />
-
-                <
-                button onClick = { sendMessage }
-                style = { styles.sendBtn } >
-                Send <
-                /button>
-
-                <
-                /div>
-
-                <
-                /div>
-            )
-        } <
-        />
-    );
+          <div className="ai-input-row">
+            <input
+              type="text"
+              placeholder="Ask anything..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              className="field"
+            />
+            <button
+              type="button"
+              onClick={sendMessage}
+              className="icon-btn"
+              aria-label="Send to AI"
+              title="Send"
+            >
+              <Send size={17} />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
-
-const styles = {
-
-    floatingBtn: {
-
-        position: "fixed",
-
-        bottom: "25px",
-
-        right: "25px",
-
-        width: "65px",
-
-        height: "65px",
-
-        borderRadius: "50%",
-
-        border: "none",
-
-        background: "#2563eb",
-
-        color: "white",
-
-        fontSize: "28px",
-
-        cursor: "pointer",
-
-        boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
-
-        zIndex: 9999,
-    },
-
-    chatbox: {
-
-        position: "fixed",
-
-        bottom: "100px",
-
-        right: "25px",
-
-        width: "350px",
-
-        height: "500px",
-
-        background: "#0f172a",
-
-        borderRadius: "20px",
-
-        display: "flex",
-
-        flexDirection: "column",
-
-        overflow: "hidden",
-
-        boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
-
-        zIndex: 9999,
-    },
-
-    header: {
-
-        background: "#2563eb",
-
-        color: "white",
-
-        padding: "15px",
-
-        display: "flex",
-
-        justifyContent: "space-between",
-
-        alignItems: "center",
-
-        fontWeight: "bold",
-    },
-
-    headerBtns: {
-
-        display: "flex",
-
-        alignItems: "center",
-
-        gap: "10px",
-    },
-
-    clearBtn: {
-
-        background: "white",
-
-        color: "#2563eb",
-
-        border: "none",
-
-        padding: "5px 10px",
-
-        borderRadius: "6px",
-
-        fontWeight: "bold",
-
-        cursor: "pointer",
-
-        fontSize: "12px",
-    },
-
-    closeBtn: {
-
-        background: "transparent",
-
-        border: "none",
-
-        color: "white",
-
-        fontSize: "18px",
-
-        cursor: "pointer",
-    },
-
-    messages: {
-
-        flex: 1,
-
-        padding: "15px",
-
-        overflowY: "auto",
-
-        display: "flex",
-
-        flexDirection: "column",
-
-        gap: "10px",
-    },
-
-    userMsg: {
-
-        alignSelf: "flex-end",
-
-        background: "#2563eb",
-
-        color: "white",
-
-        padding: "10px",
-
-        borderRadius: "10px",
-
-        maxWidth: "80%",
-    },
-
-    aiMsg: {
-
-        alignSelf: "flex-start",
-
-        background: "#1e293b",
-
-        color: "white",
-
-        padding: "10px",
-
-        borderRadius: "10px",
-
-        maxWidth: "80%",
-    },
-
-    inputArea: {
-
-        display: "flex",
-
-        padding: "10px",
-
-        borderTop: "1px solid #334155",
-    },
-
-    input: {
-
-        flex: 1,
-
-        padding: "10px",
-
-        borderRadius: "10px",
-
-        border: "none",
-
-        outline: "none",
-    },
-
-    sendBtn: {
-
-        marginLeft: "10px",
-
-        padding: "10px 15px",
-
-        border: "none",
-
-        borderRadius: "10px",
-
-        background: "#2563eb",
-
-        color: "white",
-
-        cursor: "pointer",
-    },
-};
 
 export default AIChatBot;
