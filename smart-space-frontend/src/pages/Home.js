@@ -27,6 +27,16 @@ const toMinutes = (time) => {
   return hours * 60 + minutes;
 };
 
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch (error) {
+    return null;
+  }
+};
+
+const getUserId = (user) => String(user?.id || user?._id || "").trim();
+
 function Home() {
   const [spaces, setSpaces] = useState([]);
   const [recommendedSpaces, setRecommendedSpaces] = useState([]);
@@ -36,6 +46,8 @@ function Home() {
   const [endTime, setEndTime] = useState("");
   const [query, setQuery] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [minRating, setMinRating] = useState("");
+  const [sortBy, setSortBy] = useState("smart");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [showPayment, setShowPayment] = useState(false);
@@ -121,17 +133,55 @@ function Home() {
   };
 
   const filteredSpaces = useMemo(() => {
-    return spaces.filter((space) => {
+    const filtered = spaces.filter((space) => {
       const title = (space.title || "").toLowerCase();
       const location = (space.location || "").toLowerCase();
       const search = query.toLowerCase();
       const price = Number(space.price) || 0;
+      const rating = Number(space.averageRating) || 0;
       const matchSearch = !search || title.includes(search) || location.includes(search);
       const matchPrice = !maxPrice || price <= Number(maxPrice);
+      const matchRating = !minRating || rating >= Number(minRating);
 
-      return matchSearch && matchPrice;
+      return matchSearch && matchPrice && matchRating;
     });
-  }, [spaces, query, maxPrice]);
+
+    return [...filtered].sort((a, b) => {
+      const priceA = Number(a.price) || 0;
+      const priceB = Number(b.price) || 0;
+      const ratingA = Number(a.averageRating) || 0;
+      const ratingB = Number(b.averageRating) || 0;
+
+      if (sortBy === "price-low") return priceA - priceB;
+      if (sortBy === "price-high") return priceB - priceA;
+      if (sortBy === "rating-high") return ratingB - ratingA;
+
+      return ratingB * 10 - priceB / 100 - (ratingA * 10 - priceA / 100);
+    });
+  }, [spaces, query, maxPrice, minRating, sortBy]);
+
+  const resultStats = useMemo(() => {
+    const prices = filteredSpaces.map((space) => Number(space.price) || 0);
+    const ratings = filteredSpaces.map((space) => Number(space.averageRating) || 0);
+    const averagePrice =
+      prices.length > 0
+        ? Math.round(prices.reduce((sum, price) => sum + price, 0) / prices.length)
+        : 0;
+    const bestRating = ratings.length > 0 ? Math.max(...ratings) : 0;
+
+    return {
+      averagePrice,
+      bestRating,
+      count: filteredSpaces.length,
+    };
+  }, [filteredSpaces]);
+
+  const clearFilters = () => {
+    setQuery("");
+    setMaxPrice("");
+    setMinRating("");
+    setSortBy("smart");
+  };
 
   const openBooking = (space) => {
     setSelectedSpace(space);
@@ -151,10 +201,11 @@ function Home() {
   };
 
   const handleBooking = () => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = getStoredUser();
+    const userId = getUserId(user);
 
-    if (!user) {
-      return alert("Please login");
+    if (!userId) {
+      return alert("Please login again before booking");
     }
 
     if (!date || !startTime || !endTime) {
@@ -168,11 +219,23 @@ function Home() {
       return alert("End time must be greater");
     }
 
+    const selectedStart = new Date(`${date}T${startTime}`);
+
+    if (Number.isNaN(selectedStart.getTime())) {
+      return alert("Choose a valid date and time");
+    }
+
+    if (selectedStart <= new Date()) {
+      return alert("Choose a future time slot");
+    }
+
     setBookingData({
+      userId,
+      userName: user?.name || "Customer",
       spaceId: selectedSpace._id,
       spaceTitle: selectedSpace.title,
       location: selectedSpace.location,
-      price: selectedSpace.price,
+      price: Number(selectedSpace.price) || 0,
       date,
       startTime,
       endTime,
@@ -183,7 +246,7 @@ function Home() {
   };
 
   const handlePaymentSuccess = (bookingId) => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = getStoredUser();
 
     setShowPayment(false);
     setInvoiceData({
@@ -223,6 +286,24 @@ function Home() {
       alert("Review failed");
     }
   };
+
+  const bookingDurationLabel = useMemo(() => {
+    const startMinutes = toMinutes(startTime);
+    const endMinutes = toMinutes(endTime);
+
+    if (
+      Number.isNaN(startMinutes) ||
+      Number.isNaN(endMinutes) ||
+      endMinutes <= startMinutes
+    ) {
+      return "Select a valid time slot";
+    }
+
+    const hours = (endMinutes - startMinutes) / 60;
+    const label = Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
+
+    return `${label} ${hours === 1 ? "hour" : "hours"}`;
+  }, [startTime, endTime]);
 
   const renderSpaceCard = (space, isRecommended = false) => (
     <article key={space._id} className="space-card">
@@ -312,6 +393,36 @@ function Home() {
           />
         </label>
 
+        <label className="input-with-icon">
+          <Star size={18} />
+          <select
+            value={minRating}
+            onChange={(e) => setMinRating(e.target.value)}
+            className="field"
+            aria-label="Minimum rating"
+          >
+            <option value="">Any rating</option>
+            <option value="4">4+ rating</option>
+            <option value="3">3+ rating</option>
+            <option value="2">2+ rating</option>
+          </select>
+        </label>
+
+        <label className="input-with-icon">
+          <SlidersHorizontal size={18} />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="field"
+            aria-label="Sort spaces"
+          >
+            <option value="smart">Smart sort</option>
+            <option value="price-low">Price low to high</option>
+            <option value="price-high">Price high to low</option>
+            <option value="rating-high">Highest rated</option>
+          </select>
+        </label>
+
         <button
           type="button"
           onClick={startVoiceSearch}
@@ -320,6 +431,31 @@ function Home() {
           <Mic size={17} />
           Voice
         </button>
+
+        <button type="button" className="btn btn-secondary" onClick={clearFilters}>
+          Clear
+        </button>
+      </section>
+
+      <section className="insight-strip" aria-label="Search insights">
+        <div className="insight-item">
+          <span className="insight-label">Matches</span>
+          <strong className="insight-value">{resultStats.count}</strong>
+        </div>
+        <div className="insight-item">
+          <span className="insight-label">Average price</span>
+          <strong className="insight-value inline-icon">
+            <IndianRupee size={18} />
+            {resultStats.averagePrice}
+          </strong>
+        </div>
+        <div className="insight-item">
+          <span className="insight-label">Best rating</span>
+          <strong className="insight-value inline-icon">
+            <Star size={18} />
+            {resultStats.bestRating}
+          </strong>
+        </div>
       </section>
 
       <section className="section-block">
@@ -448,6 +584,30 @@ function Home() {
                     className="field"
                   />
                 </label>
+
+                <div className="summary-box booking-preview">
+                  <div className="summary-row">
+                    <span>Date</span>
+                    <strong>{date || "Not selected"}</strong>
+                  </div>
+                  <div className="summary-row">
+                    <span>Slot</span>
+                    <strong>
+                      {startTime && endTime ? `${startTime} - ${endTime}` : "Not selected"}
+                    </strong>
+                  </div>
+                  <div className="summary-row">
+                    <span>Duration</span>
+                    <strong>{bookingDurationLabel}</strong>
+                  </div>
+                  <div className="summary-row total">
+                    <span>Space price</span>
+                    <strong className="inline-icon">
+                      <IndianRupee size={16} />
+                      {Number(selectedSpace.price) || 0}
+                    </strong>
+                  </div>
+                </div>
 
                 <button
                   type="button"

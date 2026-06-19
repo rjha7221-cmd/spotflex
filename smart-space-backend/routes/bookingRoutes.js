@@ -1,5 +1,6 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
+const mongoose = require("mongoose");
 
 const router = express.Router();
 
@@ -233,9 +234,23 @@ router.post("/create", async(req, res) => {
             });
         }
 
+        if (!mongoose.Types.ObjectId.isValid(safeSpaceId)) {
+
+            return res.status(400).json({
+                message: "Invalid space selected"
+            });
+        }
+
         // GET SPACE DATA
         const space =
             await Space.findById(safeSpaceId);
+
+        if (!space) {
+
+            return res.status(404).json({
+                message: "Selected space was not found"
+            });
+        }
 
         const booking = new Booking({
 
@@ -265,6 +280,7 @@ router.post("/create", async(req, res) => {
 
         res.status(201).json({
             message: "Booking Successful 🚀",
+            bookingId: booking._id,
             booking
         });
 

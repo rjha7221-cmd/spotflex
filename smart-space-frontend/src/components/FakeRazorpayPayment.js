@@ -2,6 +2,26 @@ import React, { useState } from "react";
 import axios from "axios";
 import { CheckCircle2, CreditCard, IndianRupee, LoaderCircle, X } from "lucide-react";
 
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch (error) {
+    return null;
+  }
+};
+
+const getErrorMessage = (error) => {
+  if (error?.response?.data?.message) {
+    return error.response.data.message;
+  }
+
+  if (error?.message === "Network Error") {
+    return "Booking service is not reachable. Make sure the backend server is running.";
+  }
+
+  return error?.message || "Payment failed";
+};
+
 const FakeRazorpayPayment = ({ booking, onPaymentSuccess, onPaymentClose }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStep, setPaymentStep] = useState("confirm");
@@ -12,11 +32,20 @@ const FakeRazorpayPayment = ({ booking, onPaymentSuccess, onPaymentClose }) => {
 
     setTimeout(async () => {
       try {
-        const user = JSON.parse(localStorage.getItem("user"));
+        const user = getStoredUser();
+        const userId = String(booking.userId || user?.id || user?._id || "").trim();
+        const userName = String(booking.userName || user?.name || "Customer").trim();
+
+        if (!userId) {
+          alert("Please login again before booking.");
+          setPaymentStep("confirm");
+          setIsProcessing(false);
+          return;
+        }
 
         const response = await axios.post("http://localhost:5000/api/bookings/create", {
-          userId: user.id || user._id,
-          userName: user.name,
+          userId,
+          userName,
           spaceId: booking.spaceId,
           spaceTitle: booking.spaceTitle,
           location: booking.location,
@@ -32,11 +61,11 @@ const FakeRazorpayPayment = ({ booking, onPaymentSuccess, onPaymentClose }) => {
         setIsProcessing(false);
 
         setTimeout(() => {
-          onPaymentSuccess(response.data.bookingId || booking._id);
+          onPaymentSuccess(response.data?.bookingId || response.data?.booking?._id);
         }, 2000);
       } catch (error) {
         console.error("Error creating booking:", error);
-        alert("Payment failed");
+        alert(getErrorMessage(error));
         setPaymentStep("confirm");
         setIsProcessing(false);
       }
