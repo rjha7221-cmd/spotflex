@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Building2, KeyRound, Mail, User } from "lucide-react";
+import { useNotifications } from "../context/NotificationContext";
 
 function OwnerRegister() {
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,10 +22,18 @@ function OwnerRegister() {
         role: "owner",
       });
 
-      alert("Owner registered successfully.");
+      addNotification({
+        type: "success",
+        title: "Owner account created",
+        message: "You can login and manage your spaces now.",
+      });
       navigate("/owner-login");
     } catch (error) {
-      alert("Registration failed");
+      addNotification({
+        type: "error",
+        title: "Registration failed",
+        message: error.response?.data?.message || "Please check your details and try again.",
+      });
     }
   };
 

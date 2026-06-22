@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { KeyRound, Mail, ShieldCheck, User } from "lucide-react";
+import { useNotifications } from "../context/NotificationContext";
 
 function UserRegister() {
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,10 +22,18 @@ function UserRegister() {
         role: "user",
       });
 
-      alert("Registration successful.");
+      addNotification({
+        type: "success",
+        title: "Account created",
+        message: "You can login with your new user account.",
+      });
       navigate("/user-login");
     } catch (error) {
-      alert("Registration failed");
+      addNotification({
+        type: "error",
+        title: "Registration failed",
+        message: error.response?.data?.message || "Please check your details and try again.",
+      });
     }
   };
 

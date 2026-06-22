@@ -14,16 +14,24 @@ import {
 } from "lucide-react";
 
 import { ThemeContext } from "../context/ThemeContext";
+import { useNotifications } from "../context/NotificationContext";
+import NotificationCenter from "./NotificationCenter";
 
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const { addNotification } = useNotifications();
   const user = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    addNotification({
+      type: "info",
+      title: "Signed out",
+      message: "Your SpotFlex session has ended.",
+    });
     navigate("/");
   };
 
@@ -72,6 +80,8 @@ function Navbar() {
         >
           {theme.isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
         </button>
+
+        <NotificationCenter />
 
         {user ? (
           <div className="profile-menu">

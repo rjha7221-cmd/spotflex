@@ -4,26 +4,28 @@ const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const authController = require("../controllers/authController");
+const authController = require("../controllers/authcontroller");
 const JWT_SECRET = process.env.JWT_SECRET || "SECRET_KEY";
-// NAYA IMPORT: Controllers se OTP functions layein
-
-
+const ALLOWED_ROLES = ["user", "owner"];
 
 /* =========================
    NEW OTP ROUTES
 ========================= */
 router.post("/send-otp", authController.sendOTP);
 router.post("/verify-otp", authController.verifyOTP);
+router.post("/forgot-password/send-otp", authController.sendPasswordResetOTP);
+router.post("/forgot-password/reset", authController.resetPassword);
 
 /* =========================
    REGISTER
 ========================= */
 router.post("/register", async(req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role = "user" } = req.body;
+        const normalizedEmail = String(email || "").trim().toLowerCase();
+        const safeRole = ALLOWED_ROLES.includes(role) ? role : "user";
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email: normalizedEmail });
 
         if (existingUser) {
             return res.status(400).json({
@@ -36,8 +38,9 @@ router.post("/register", async(req, res) => {
 
         const user = new User({
             name,
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
+            role: safeRole,
         });
 
         await user.save();
@@ -62,14 +65,22 @@ router.post("/register", async(req, res) => {
 ========================= */
 router.post("/login", async(req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
+        const normalizedEmail = String(email || "").trim().toLowerCase();
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid email",
+            });
+        }
+
+        if (role && user.role && user.role !== role) {
+            return res.status(403).json({
+                success: false,
+                message: `Please login from the ${user.role} login page`,
             });
         }
 
@@ -94,6 +105,7 @@ router.post("/login", async(req, res) => {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
+                role: user.role || role || "user",
             },
         });
 

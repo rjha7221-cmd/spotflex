@@ -59,6 +59,7 @@
 html {
   min-height: 100%;
   background: var(--bg);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -107,6 +108,65 @@ img {
     linear-gradient(160deg, color-mix(in srgb, var(--accent-soft) 42%, transparent), transparent 34%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
   transition: background 180ms ease, color 180ms ease;
+  animation: page-fade-in 420ms ease both;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes panel-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes visual-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .site-nav {
@@ -122,6 +182,7 @@ img {
   border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   background: color-mix(in srgb, var(--surface-strong) 82%, transparent);
   backdrop-filter: blur(18px);
+  box-shadow: 0 10px 30px rgba(34, 48, 42, 0.08);
 }
 
 .nav-left,
@@ -151,6 +212,12 @@ img {
   background: linear-gradient(135deg, var(--primary), var(--accent));
   box-shadow: var(--shadow-soft);
   font-weight: 800;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.brand-link:hover .brand-mark {
+  transform: rotate(-4deg) scale(1.04);
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--primary) 24%, transparent);
 }
 
 .brand-text {
@@ -177,17 +244,157 @@ img {
   color: var(--muted);
   font-size: 0.92rem;
   font-weight: 700;
-  transition: background 160ms ease, color 160ms ease;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
 .nav-link:hover,
 .nav-link.active {
   color: var(--text-strong);
   background: var(--surface-muted);
+  transform: translateY(-1px);
 }
 
 .nav-actions {
   gap: 10px;
+}
+
+.notification-center {
+  position: relative;
+}
+
+.notification-trigger {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid var(--surface-strong);
+  border-radius: 999px;
+  color: #ffffff;
+  background: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.notification-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: min(360px, calc(100vw - 28px));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  animation: notification-drop 160ms ease both;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notification-header strong {
+  display: block;
+  color: var(--text-strong);
+}
+
+.notification-header span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.notification-actions button,
+.toast-close {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: var(--surface-muted);
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.notification-actions button:hover,
+.toast-close:hover {
+  color: var(--text-strong);
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+}
+
+.notification-list {
+  max-height: 330px;
+  overflow: auto;
+}
+
+.notification-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--primary-soft) 28%, transparent);
+}
+
+.notification-item.read {
+  background: transparent;
+}
+
+.notification-dot {
+  width: 9px;
+  height: 9px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.notification-error .notification-dot {
+  background: var(--danger);
+  box-shadow: 0 0 0 4px var(--danger-soft);
+}
+
+.notification-success .notification-dot {
+  background: var(--success);
+  box-shadow: 0 0 0 4px var(--success-soft);
+}
+
+.notification-item strong {
+  color: var(--text-strong);
+  font-size: 0.92rem;
+}
+
+.notification-item p,
+.notification-empty p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.notification-empty {
+  display: grid;
+  place-items: center;
+  min-height: 130px;
+  padding: 18px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .icon-btn {
@@ -209,6 +416,52 @@ img {
   border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
 }
 
+.toast-stack {
+  position: fixed;
+  top: calc(var(--nav-height) + 16px);
+  right: 18px;
+  z-index: 2500;
+  display: grid;
+  gap: 10px;
+  width: min(380px, calc(100vw - 30px));
+  pointer-events: none;
+}
+
+.toast-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface-strong) 94%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  animation: toast-slide-in 220ms ease both;
+  pointer-events: auto;
+}
+
+.toast-card strong {
+  color: var(--text-strong);
+}
+
+.toast-card p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.toast-success {
+  border-left-color: var(--success);
+}
+
+.toast-error {
+  border-left-color: var(--danger);
+}
+
 .profile-menu {
   position: relative;
 }
@@ -223,6 +476,13 @@ img {
   color: #ffffff;
   background: var(--primary);
   font-weight: 800;
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--primary) 20%, transparent);
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.profile-button:hover {
+  background: var(--primary-strong);
+  transform: translateY(-1px);
 }
 
 .dropdown-menu {
@@ -237,6 +497,7 @@ img {
   border-radius: var(--radius);
   background: var(--surface-strong);
   box-shadow: var(--shadow);
+  animation: notification-drop 160ms ease both;
 }
 
 .profile-menu:hover .dropdown-menu,
@@ -339,6 +600,16 @@ img {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-soft);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.surface-card:hover,
+.space-card:hover,
+.metric-card:hover,
+.feature-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  box-shadow: var(--shadow);
 }
 
 .btn {
@@ -351,7 +622,7 @@ img {
   border-radius: var(--radius);
   font-weight: 800;
   line-height: 1;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
 }
 
 .btn:hover {
@@ -421,7 +692,7 @@ img {
   color: var(--text);
   background: var(--surface-strong);
   outline: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .field:focus,
@@ -641,6 +912,7 @@ img {
 }
 
 .auth-visual {
+  position: relative;
   min-height: 580px;
   overflow: hidden;
   border-radius: var(--radius);
@@ -652,6 +924,16 @@ img {
   padding: 28px;
   color: #ffffff;
   box-shadow: var(--shadow);
+  animation: visual-reveal 520ms ease both;
+}
+
+.auth-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.12) 44%, transparent 58%);
+  opacity: 0.38;
+  pointer-events: none;
 }
 
 .auth-visual.owner {
@@ -661,6 +943,8 @@ img {
 }
 
 .auth-visual-content {
+  position: relative;
+  z-index: 1;
   max-width: 540px;
 }
 
@@ -678,6 +962,28 @@ img {
 
 .auth-card {
   padding: 28px;
+  backdrop-filter: blur(16px);
+  animation: panel-rise 440ms ease both;
+}
+
+.auth-motion > * {
+  animation: panel-rise 360ms ease both;
+}
+
+.auth-motion > *:nth-child(2) {
+  animation-delay: 35ms;
+}
+
+.auth-motion > *:nth-child(3) {
+  animation-delay: 70ms;
+}
+
+.auth-motion > *:nth-child(4) {
+  animation-delay: 105ms;
+}
+
+.auth-motion > *:nth-child(5) {
+  animation-delay: 140ms;
 }
 
 .form-panel {
@@ -695,6 +1001,50 @@ img {
 .auth-card p {
   margin-top: 8px;
   color: var(--muted);
+}
+
+.auth-method-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+}
+
+.auth-method-option {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--muted);
+  background: transparent;
+  font-weight: 800;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.auth-method-option.active {
+  color: var(--text-strong);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.auth-text-button {
+  width: fit-content;
+  justify-self: center;
+  color: var(--primary-strong);
+  background: transparent;
+  font-size: 0.92rem;
+  font-weight: 850;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.auth-text-button:hover {
+  color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .auth-links {
@@ -1063,6 +1413,17 @@ img {
   margin-bottom: 8px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 860px) {
   .site-nav {
     align-items: flex-start;
@@ -1091,6 +1452,10 @@ img {
 
   .auth-visual {
     min-height: 320px;
+  }
+
+  .notification-menu {
+    right: -80px;
   }
 
   .landing-title {
@@ -1134,5 +1499,15 @@ img {
 
   .modal-panel {
     padding: 16px;
+  }
+
+  .notification-menu {
+    right: -42px;
+  }
+
+  .toast-stack {
+    top: calc(var(--nav-height) + 10px);
+    right: 12px;
+    width: calc(100vw - 24px);
   }
 }

@@ -16,6 +16,8 @@ import Wishlist from "./pages/Wishlist";
 import AIChatBot from "./components/AIChatBot";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ToastHost from "./components/ToastHost";
+import { NotificationProvider } from "./context/NotificationContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
 function AppContent() {
@@ -24,6 +26,7 @@ function AppContent() {
       <BrowserRouter>
         <Navbar />
         <AIChatBot />
+        <ToastHost />
 
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -75,7 +78,9 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
     </ThemeProvider>
   );
 }
