@@ -35,6 +35,7 @@ const FakeRazorpayPayment = ({ booking, onPaymentSuccess, onPaymentClose }) => {
         const user = getStoredUser();
         const userId = String(booking.userId || user?.id || user?._id || "").trim();
         const userName = String(booking.userName || user?.name || "Customer").trim();
+        const paymentId = `pay_demo_${Date.now()}`;
 
         if (!userId) {
           alert("Please login again before booking.");
@@ -55,13 +56,24 @@ const FakeRazorpayPayment = ({ booking, onPaymentSuccess, onPaymentClose }) => {
           endTime: booking.endTime,
           paymentStatus: "PAID",
           paymentMethod: "Fake Razorpay",
+          paymentId,
         });
 
         setPaymentStep("success");
         setIsProcessing(false);
 
         setTimeout(() => {
-          onPaymentSuccess(response.data?.bookingId || response.data?.booking?._id);
+          onPaymentSuccess(
+            response.data?.booking || {
+              ...booking,
+              _id: response.data?.bookingId,
+              qrCode: response.data?.qrCode,
+              qrPayload: response.data?.qrPayload,
+              paymentId,
+              paymentMethod: "Fake Razorpay",
+              paymentStatus: "PAID",
+            }
+          );
         }, 2000);
       } catch (error) {
         console.error("Error creating booking:", error);
@@ -154,7 +166,7 @@ const FakeRazorpayPayment = ({ booking, onPaymentSuccess, onPaymentClose }) => {
           <div className="empty-state">
             <LoaderCircle size={42} style={{ animation: "spin 1s linear infinite" }} />
             <h2>Processing payment</h2>
-            <p>Please wait while we confirm the transaction.</p>
+            <p>Confirming demo payment and saving your booking.</p>
           </div>
         )}
 
@@ -162,7 +174,7 @@ const FakeRazorpayPayment = ({ booking, onPaymentSuccess, onPaymentClose }) => {
           <div className="empty-state">
             <CheckCircle2 size={44} color="var(--success)" />
             <h2>Payment successful</h2>
-            <p>Your booking has been confirmed. Opening invoice...</p>
+            <p>Booking saved and QR generated. Opening invoice...</p>
           </div>
         )}
 

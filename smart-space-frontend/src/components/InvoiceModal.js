@@ -4,7 +4,9 @@ import {
   Download,
   IndianRupee,
   Printer,
+  QrCode,
   ReceiptText,
+  ShieldCheck,
   X,
 } from "lucide-react";
 
@@ -48,6 +50,10 @@ GST (18%): INR ${gst.toFixed(2)}
 Total: INR ${total.toFixed(2)}
 
 Payment Status: PAID
+Payment Method: ${invoiceData.paymentMethod || "Fake Razorpay"}
+Payment ID: ${invoiceData.paymentId || invoiceNumber}
+Check-In Status: ${invoiceData.checkInStatus || "pending"}
+QR Payload: ${invoiceData.qrPayload || "Not available"}
 
 Thank you for using SpotFlex!
 `,
@@ -156,10 +162,36 @@ Thank you for using SpotFlex!
         </div>
 
         <div className="invoice-section">
-          <span className="badge badge-success">
-            <CheckCircle2 size={15} />
-            Paid
-          </span>
+          <h3>Entry QR</h3>
+          <div className="qr-invoice-panel">
+            <div className="qr-image-frame">
+              {invoiceData.qrCode ? (
+                <img src={invoiceData.qrCode} alt="Booking check-in QR" />
+              ) : (
+                <QrCode size={72} />
+              )}
+            </div>
+            <div className="qr-copy">
+              <span className="badge badge-success">
+                <CheckCircle2 size={15} />
+                {invoiceData.paymentStatus || "Paid"}
+              </span>
+              <span className="badge badge-warning">
+                <ShieldCheck size={15} />
+                {invoiceData.checkInStatus || "pending"}
+              </span>
+              <div className="summary-box compact">
+                <div className="summary-row">
+                  <span>Payment</span>
+                  <strong>{invoiceData.paymentMethod || "Fake Razorpay"}</strong>
+                </div>
+                <div className="summary-row">
+                  <span>Code</span>
+                  <strong>{invoiceNumber}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="form-grid">

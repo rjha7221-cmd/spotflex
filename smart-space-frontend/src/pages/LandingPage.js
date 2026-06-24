@@ -4,7 +4,12 @@ import {
   ArrowRight,
   Building2,
   CalendarCheck,
+  CheckCircle2,
   Clock3,
+  MessageSquare,
+  QrCode,
+  ReceiptText,
+  ScanLine,
   Search,
   ShieldCheck,
   WalletCards,
@@ -26,6 +31,17 @@ const highlights = [
     text: "Owners can list spaces, review bookings, and chat with guests from one dashboard.",
     icon: Building2,
   },
+];
+
+const bookingFlow = [
+  { label: "Book Space", icon: CalendarCheck },
+  { label: "Fake Razorpay", icon: WalletCards },
+  { label: "Booking Saved", icon: ShieldCheck },
+  { label: "QR Generated", icon: QrCode },
+  { label: "Invoice Open", icon: ReceiptText },
+  { label: "QR Display", icon: QrCode },
+  { label: "Owner Scan QR", icon: ScanLine },
+  { label: "Check-In Verified", icon: CheckCircle2 },
 ];
 
 function LandingPage() {
@@ -108,6 +124,54 @@ function LandingPage() {
             </p>
             <h2 className="metric-value">Fast</h2>
           </article>
+        </section>
+
+        <section className="workflow-section">
+          <div className="page-header compact">
+            <div>
+              <p className="eyebrow">
+                <QrCode size={15} />
+                Booking flow
+              </p>
+              <h2 className="section-title">From payment to verified entry</h2>
+            </div>
+          </div>
+
+          <div className="workflow-track">
+            {bookingFlow.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <article key={item.label} className="workflow-step">
+                  <span className="workflow-icon">
+                    <Icon size={19} />
+                  </span>
+                  <strong>{item.label}</strong>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="showcase-band">
+          <div className="showcase-image">
+            <img
+              src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1400&auto=format&fit=crop"
+              alt="Team using a flexible workspace"
+            />
+          </div>
+          <div className="showcase-copy">
+            <p className="eyebrow">
+              <MessageSquare size={15} />
+              Owner and user chat
+            </p>
+            <h2 className="section-title">Every booking keeps its conversation attached</h2>
+            <div className="mini-chat-preview">
+              <div className="mini-message their">Hi, is the entry gate open?</div>
+              <div className="mini-message own">Yes, show the QR at arrival.</div>
+              <div className="mini-message their">Great, reaching in 10 minutes.</div>
+            </div>
+          </div>
         </section>
 
         <section className="section-block">

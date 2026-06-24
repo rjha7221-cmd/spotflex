@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Building2,
   CalendarDays,
+  CheckCircle2,
   Clock3,
   Edit3,
   Image,
@@ -11,7 +12,10 @@ import {
   MapPin,
   MessageSquare,
   Plus,
+  QrCode,
   ReceiptIndianRupee,
+  ScanLine,
+  ShieldCheck,
   Trash2,
   WalletCards,
   X,
@@ -31,6 +35,11 @@ function OwnerDashboard() {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState("");
+  const [scanCode, setScanCode] = useState("");
+  const [scanResult, setScanResult] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const currentUser = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     fetchSpaces();
@@ -113,7 +122,50 @@ function OwnerDashboard() {
     }
   };
 
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const verifyCheckIn = async (bookingOrCode) => {
+    const isBooking = typeof bookingOrCode === "object" && bookingOrCode !== null;
+    const payload = isBooking
+      ? {
+          bookingId: bookingOrCode._id,
+          qrPayload: bookingOrCode.qrPayload,
+        }
+      : {
+          scanCode: bookingOrCode,
+        };
+
+    if (!payload.bookingId && !payload.scanCode && !payload.qrPayload) {
+      return alert("Enter a booking code or choose a reservation.");
+    }
+
+    setIsVerifying(true);
+    setScanResult(null);
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/bookings/verify-checkin", {
+        ...payload,
+        verifiedBy: currentUser?.name || "Owner",
+      });
+
+      const verifiedBooking = res.data.booking;
+
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking._id === verifiedBooking._id ? verifiedBooking : booking
+        )
+      );
+      setScanCode("");
+      setScanResult(verifiedBooking);
+      alert(res.data.message || "Check-In Verified");
+    } catch (error) {
+      console.log(error);
+      setScanResult({
+        error: error.response?.data?.message || "Check-in verification failed",
+      });
+      alert(error.response?.data?.message || "Check-in verification failed");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   return (
     <main className="page-shell">
@@ -165,6 +217,54 @@ function OwnerDashboard() {
             {totalEarning}
           </h2>
         </article>
+      </section>
+
+      <section className="checkin-console">
+        <div>
+          <p className="eyebrow">
+            <ScanLine size={15} />
+            QR check-in
+          </p>
+          <h2 className="section-title">Verify guest entry</h2>
+        </div>
+
+        <div className="scanner-grid">
+          <label className="input-with-icon">
+            <QrCode size={18} />
+            <input
+              value={scanCode}
+              onChange={(e) => setScanCode(e.target.value)}
+              placeholder="Booking ID or QR payload"
+              className="field"
+            />
+          </label>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => verifyCheckIn(scanCode)}
+            disabled={isVerifying}
+          >
+            <ScanLine size={17} />
+            Verify Check-In
+          </button>
+        </div>
+
+        {scanResult && (
+          <div className={`scan-result ${scanResult.error ? "scan-error" : ""}`}>
+            {scanResult.error ? (
+              <>
+                <X size={18} />
+                <strong>{scanResult.error}</strong>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={18} />
+                <strong>{scanResult.spaceTitle}</strong>
+                <span>{scanResult.userName} checked in</span>
+              </>
+            )}
+          </div>
+        )}
       </section>
 
       <section className="section-block">
@@ -267,6 +367,46 @@ function OwnerDashboard() {
                     <IndianRupee size={18} />
                     {booking.price}
                   </p>
+
+                  <div className="booking-qr-strip">
+                    <div className="booking-qr-thumb">
+                      {booking.qrCode ? (
+                        <img src={booking.qrCode} alt="Booking QR" />
+                      ) : (
+                        <QrCode size={34} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="qr-strip-title">
+                        <ShieldCheck size={15} />
+                        Check-in
+                      </p>
+                      <span
+                        className={`badge ${
+                          booking.checkInStatus === "verified"
+                            ? "badge-success"
+                            : "badge-warning"
+                        }`}
+                      >
+                        {booking.checkInStatus === "verified" ? (
+                          <CheckCircle2 size={14} />
+                        ) : (
+                          <ScanLine size={14} />
+                        )}
+                        {booking.checkInStatus || "pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-success btn-full"
+                    onClick={() => verifyCheckIn(booking)}
+                    disabled={booking.checkInStatus === "verified" || isVerifying}
+                  >
+                    <ScanLine size={17} />
+                    {booking.checkInStatus === "verified" ? "Verified" : "Scan QR"}
+                  </button>
 
                   <div className="section-block" style={{ marginTop: 8 }}>
                     <p className="eyebrow">

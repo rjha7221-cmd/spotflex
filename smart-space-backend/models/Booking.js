@@ -52,6 +52,37 @@ const bookingSchema = new mongoose.Schema({
         default: "upcoming"
     },
 
+    paymentStatus: {
+        type: String,
+        enum: ["PENDING", "PAID", "FAILED"],
+        default: "PENDING"
+    },
+
+    paymentMethod: {
+        type: String,
+        default: ""
+    },
+
+    paymentId: {
+        type: String,
+        default: ""
+    },
+
+    checkInStatus: {
+        type: String,
+        enum: ["pending", "verified"],
+        default: "pending"
+    },
+
+    checkedInAt: {
+        type: Date
+    },
+
+    verifiedBy: {
+        type: String,
+        default: ""
+    },
+
     cancelledAt: {
         type: Date
     },
@@ -59,7 +90,17 @@ const bookingSchema = new mongoose.Schema({
     bookingDate: {
         type: Date,
         default: Date.now
-    }
+    },
+
+    qrPayload: {
+        type: String,
+        default: ""
+    },
+
+    qrCode: {
+        type: String,
+        default: ""
+    },
 
 });
 

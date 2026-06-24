@@ -6,7 +6,7 @@ const router = express.Router();
 
 const Booking = require("../models/Booking");
 const Space = require("../models/Space");
-
+const QRCode = require("qrcode");
 const bookingRateLimiter = rateLimit({
     windowMs: 60 * 1000,
     limit: 60,
@@ -153,6 +153,48 @@ const hasSlotConflict = async(
     });
 };
 
+const getBookingIdFromScan = (scanValue) => {
+
+    if (typeof scanValue !== "string") {
+        return null;
+    }
+
+    const trimmedValue = scanValue.trim();
+
+    if (!trimmedValue) {
+        return null;
+    }
+
+    if (mongoose.Types.ObjectId.isValid(trimmedValue)) {
+        return trimmedValue;
+    }
+
+    try {
+        const parsedValue =
+            JSON.parse(trimmedValue);
+
+        const parsedBookingId =
+            parsedValue.bookingId ||
+            parsedValue._id;
+
+        if (
+            typeof parsedBookingId === "string" &&
+            mongoose.Types.ObjectId.isValid(parsedBookingId)
+        ) {
+            return parsedBookingId;
+        }
+    } catch (error) {
+        // Scanner payloads can be plain text, JSON, or text around a booking id.
+    }
+
+    const objectIdMatch =
+        trimmedValue.match(/[a-f\d]{24}/i);
+
+    return objectIdMatch ?
+        objectIdMatch[0] :
+        null;
+};
+
 
 
 
@@ -170,7 +212,10 @@ router.post("/create", async(req, res) => {
             spaceTitle,
             date,
             startTime,
-            endTime
+            endTime,
+            paymentStatus,
+            paymentMethod,
+            paymentId
         } = req.body;
 
         const safeUserId =
@@ -193,6 +238,14 @@ router.post("/create", async(req, res) => {
 
         const safeEndTime =
             sanitizeString(endTime);
+
+        const safePaymentMethod =
+            sanitizeString(paymentMethod) ||
+            "Fake Razorpay";
+
+        const safePaymentId =
+            sanitizeString(paymentId) ||
+            `fake_${Date.now()}`;
 
         if (!safeUserId ||
             !safeUserName ||
@@ -273,15 +326,51 @@ router.post("/create", async(req, res) => {
 
             endTime: safeEndTime,
 
-            status: "upcoming"
+            status: "upcoming",
+
+            paymentStatus: paymentStatus === "PAID" ?
+                "PAID" :
+                "PENDING",
+
+            paymentMethod: safePaymentMethod,
+
+            paymentId: safePaymentId
         });
+
+        await booking.save();
+
+        const qrData = {
+            type: "SPOTFLEX_CHECK_IN",
+            bookingId: booking._id,
+            userId: booking.userId,
+            userName: booking.userName,
+            spaceId: booking.spaceId,
+            spaceTitle: booking.spaceTitle,
+            date: booking.date,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            issuedAt: new Date().toISOString()
+        };
+
+        const qrPayload =
+            JSON.stringify(qrData);
+
+        const qrCode = await QRCode.toDataURL(
+            qrPayload
+        );
+
+        booking.qrPayload = qrPayload;
+
+        booking.qrCode = qrCode;
 
         await booking.save();
 
         res.status(201).json({
             message: "Booking Successful 🚀",
             bookingId: booking._id,
-            booking
+            booking,
+            qrPayload,
+            qrCode
         });
 
     } catch (error) {
@@ -333,6 +422,81 @@ router.get("/user/:userId", async(req, res) => {
             });
 
         res.json(enrichedBookings);
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+
+
+// ================= VERIFY CHECK-IN =================
+
+router.post("/verify-checkin", async(req, res) => {
+
+    try {
+
+        const {
+            bookingId,
+            qrPayload,
+            scanCode,
+            verifiedBy
+        } = req.body;
+
+        const safeBookingId =
+            sanitizeString(bookingId);
+
+        const resolvedBookingId =
+            safeBookingId ||
+            getBookingIdFromScan(qrPayload) ||
+            getBookingIdFromScan(scanCode);
+
+        if (
+            !resolvedBookingId ||
+            !mongoose.Types.ObjectId.isValid(resolvedBookingId)
+        ) {
+            return res.status(400).json({
+                message: "Invalid QR or booking code"
+            });
+        }
+
+        const booking =
+            await Booking.findById(resolvedBookingId);
+
+        if (!booking) {
+            return res.status(404).json({
+                message: "Booking not found"
+            });
+        }
+
+        if (booking.status === "cancelled") {
+            return res.status(400).json({
+                message: "Cancelled bookings cannot be checked in"
+            });
+        }
+
+        if (booking.checkInStatus === "verified") {
+            return res.json({
+                message: "Check-in already verified",
+                booking
+            });
+        }
+
+        booking.checkInStatus = "verified";
+        booking.checkedInAt = new Date();
+        booking.verifiedBy =
+            sanitizeString(verifiedBy) ||
+            "Owner";
+
+        await booking.save();
+
+        res.json({
+            message: "Check-In Verified",
+            booking
+        });
 
     } catch (error) {
 

@@ -1,14 +1,31 @@
 const mongoose = require("mongoose");
 
-const userSchema =
+const messageSchema =
     new mongoose.Schema({
-        name: String,
-        email: String,
-        password: String,
-        role: String,
+        roomId: {
+            type: String,
+            required: true,
+            index: true
+        },
+        userName: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        text: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        },
     });
 
-module.exports = mongoose.model(
-    "User",
-    userSchema
-);
+module.exports =
+    mongoose.models.Message ||
+    mongoose.model(
+        "Message",
+        messageSchema
+    );

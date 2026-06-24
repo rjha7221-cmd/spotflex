@@ -245,19 +245,27 @@ function Home() {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = (bookingId) => {
+  const handlePaymentSuccess = (confirmedBooking) => {
     const user = getStoredUser();
+    const bookingId =
+      typeof confirmedBooking === "string" ? confirmedBooking : confirmedBooking?._id;
 
     setShowPayment(false);
     setInvoiceData({
       _id: bookingId,
-      title: selectedSpace.title,
-      location: selectedSpace.location,
+      title: confirmedBooking?.spaceTitle || selectedSpace.title,
+      location: confirmedBooking?.location || selectedSpace.location,
       date,
       startTime,
       endTime,
-      price: Number(selectedSpace.price) || 0,
-      customer: user?.name || "Customer",
+      price: Number(confirmedBooking?.price ?? selectedSpace.price) || 0,
+      customer: confirmedBooking?.userName || user?.name || "Customer",
+      paymentId: confirmedBooking?.paymentId,
+      paymentMethod: confirmedBooking?.paymentMethod || "Fake Razorpay",
+      paymentStatus: confirmedBooking?.paymentStatus || "PAID",
+      qrCode: confirmedBooking?.qrCode,
+      qrPayload: confirmedBooking?.qrPayload,
+      checkInStatus: confirmedBooking?.checkInStatus || "pending",
     });
     setShowInvoice(true);
   };

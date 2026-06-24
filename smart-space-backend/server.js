@@ -47,6 +47,10 @@ io.on("connection", (socket) => {
     // SEND MESSAGE
     socket.on("send_message", async(data) => {
         try {
+            if (!data.roomId || !data.userName || !data.message) {
+                return;
+            }
+
             const newMessage = new Message({
                 roomId: data.roomId,
                 userName: data.userName,
@@ -55,9 +59,17 @@ io.on("connection", (socket) => {
 
             await newMessage.save();
 
+            const messagePayload = {
+                roomId: newMessage.roomId,
+                userName: newMessage.userName,
+                message: newMessage.text,
+                text: newMessage.text,
+                createdAt: newMessage.createdAt,
+            };
+
             socket
                 .to(data.roomId)
-                .emit("receive_message", data);
+                .emit("receive_message", messagePayload);
         } catch (error) {
             console.log(error);
         }

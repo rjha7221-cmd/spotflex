@@ -2,16 +2,21 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   CalendarDays,
+  CheckCircle2,
   Clock3,
   IndianRupee,
   MapPin,
   MessageSquare,
+  QrCode,
+  ReceiptText,
   RotateCcw,
+  ShieldCheck,
   Trash2,
   X,
 } from "lucide-react";
 
 import ChatBox from "../components/ChatBox";
+import InvoiceModal from "../components/InvoiceModal";
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop";
@@ -32,6 +37,7 @@ function MyBookings() {
   const [rescheduleStartTime, setRescheduleStartTime] = useState("");
   const [rescheduleEndTime, setRescheduleEndTime] = useState("");
   const [loading, setLoading] = useState(true);
+  const [invoiceBooking, setInvoiceBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -131,6 +137,25 @@ function MyBookings() {
     }
   };
 
+  const openInvoice = (booking) => {
+    setInvoiceBooking({
+      _id: booking._id,
+      title: booking.spaceTitle,
+      location: booking.location,
+      date: booking.date,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      price: booking.price,
+      customer: booking.userName,
+      paymentId: booking.paymentId,
+      paymentMethod: booking.paymentMethod || "Fake Razorpay",
+      paymentStatus: booking.paymentStatus || "PAID",
+      qrCode: booking.qrCode,
+      qrPayload: booking.qrPayload,
+      checkInStatus: booking.checkInStatus || "pending",
+    });
+  };
+
   if (loading) {
     return (
       <main className="page-shell">
@@ -196,6 +221,45 @@ function MyBookings() {
                     <IndianRupee size={18} />
                     {booking.price}
                   </p>
+
+                  <div className="booking-qr-strip">
+                    <div className="booking-qr-thumb">
+                      {booking.qrCode ? (
+                        <img src={booking.qrCode} alt="Booking QR" />
+                      ) : (
+                        <QrCode size={34} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="qr-strip-title">
+                        <QrCode size={15} />
+                        Entry QR
+                      </p>
+                      <span
+                        className={`badge ${
+                          booking.checkInStatus === "verified"
+                            ? "badge-success"
+                            : "badge-warning"
+                        }`}
+                      >
+                        {booking.checkInStatus === "verified" ? (
+                          <CheckCircle2 size={14} />
+                        ) : (
+                          <ShieldCheck size={14} />
+                        )}
+                        {booking.checkInStatus || "pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-full"
+                    onClick={() => openInvoice(booking)}
+                  >
+                    <ReceiptText size={17} />
+                    Open Invoice
+                  </button>
 
                   {canManage && (
                     <div className="action-row">
@@ -308,6 +372,13 @@ function MyBookings() {
             </div>
           </div>
         </div>
+      )}
+
+      {invoiceBooking && (
+        <InvoiceModal
+          invoiceData={invoiceBooking}
+          onClose={() => setInvoiceBooking(null)}
+        />
       )}
     </main>
   );
